@@ -105,7 +105,7 @@ async function createBubbleUser(atRecord) {
     'last name':         (f['שם משפחה'] || '').trim(),
     school:              (f['בית ספר']  || '').trim(),
     classroom:           (f['grade']    || '').trim(),
-    expiration:          (f['FINAL EXPIRATION'] || '').trim(),
+    expiration:          (f['final expiration'] || '').trim(),
     airtable_record_id:  atRecord.id,
   };
 
@@ -152,7 +152,7 @@ function diffFields(atRecord, bubbleUser) {
     phone:        (f['טלפון']    || '').trim(),
     school:       (f['בית ספר']  || '').trim(),
     classroom:    (f['grade']    || '').trim(),
-    expiration:   (f['FINAL EXPIRATION'] || '').trim(),
+    expiration:   (f['final expiration'] || '').trim(),
     // email is a protected field in Bubble — cannot be updated via Data API
   };
 
