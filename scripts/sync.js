@@ -16,7 +16,7 @@
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE  = process.env.AIRTABLE_BASE;
-const AIRTABLE_TABLE = 'teachers';
+const AIRTABLE_TABLE = 'tbl8G483uVRaWUCQZ';
 const BUBBLE_URL     = process.env.BUBBLE_URL;   // e.g. https://app.bubbleapps.io/version-test/api/1.1
 const BUBBLE_TOKEN   = process.env.BUBBLE_TOKEN;
 
