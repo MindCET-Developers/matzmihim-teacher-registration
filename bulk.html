@@ -525,6 +525,7 @@
 
 <script src="config.js"></script>
 <script>
+  const AIRTABLE_TABLE_ID = 'tbl8G483uVRaWUCQZ';
   let allSchools = [];
   let allCities  = [];
   let rowCount   = 0;
@@ -839,7 +840,7 @@
       if (leader)   atFields['שם מנחה השתלמות']      = leader;
 
       try {
-        const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
+        const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE_ID)}`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ fields: atFields }),

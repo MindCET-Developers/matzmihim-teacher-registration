@@ -499,7 +499,7 @@
     <!-- Fields -->
     <div class="section" id="sec-fields">
       <div class="section-title">🗃 שדות ומבנה נתונים</div>
-      <p style="font-size:0.88rem;color:var(--gray);margin-bottom:0.8rem">טבלת <strong>Teachers</strong> ב-Airtable</p>
+      <p style="font-size:0.88rem;color:var(--gray);margin-bottom:0.8rem">טבלת <strong>tbl8G483uVRaWUCQZ</strong> ב-Airtable</p>
       <table class="field-table">
         <thead>
           <tr>
@@ -533,7 +533,7 @@
           <tr>
             <td>🗄 Airtable</td>
             <td>שמירת רשומות מורים</td>
-            <td style="font-size:0.78rem;direction:ltr">api.airtable.com/v0/appTzbYeDnjYv6ubt/Teachers</td>
+            <td style="font-size:0.78rem;direction:ltr">api.airtable.com/v0/appTzbYeDnjYv6ubt/tbl8G483uVRaWUCQZ</td>
             <td><span id="at-status"><span class="skel" style="width:50px;height:14px"></span></span></td>
           </tr>
           <tr>
@@ -584,6 +584,7 @@
 
 <script src="config.js"></script>
 <script>
+  const AIRTABLE_TABLE_ID = 'tbl8G483uVRaWUCQZ';
   function scrollTo(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -593,7 +594,7 @@
   async function fetchStats() {
     try {
       // Fetch all records (up to 100 for stats)
-      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}?pageSize=100`;
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE_ID)}?pageSize=100`;
       const res  = await fetch(url, { headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` } });
 
       if (!res.ok) throw new Error(res.status);
