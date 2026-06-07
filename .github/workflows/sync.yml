@@ -1,8 +1,10 @@
 name: Sync Airtable → Bubble
 
 on:
+  repository_dispatch:
+    types: [airtable-change]
   schedule:
-    - cron: '0 * * * *'   # כל שעה בדיוק
+    - cron: '0 * * * *'   # גיבוי כל שעה
   workflow_dispatch:        # הרצה ידנית מ-GitHub UI
 
 jobs:
