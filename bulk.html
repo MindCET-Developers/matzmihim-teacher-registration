@@ -855,7 +855,16 @@
         fetch(BUBBLE_URL, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${BUBBLE_TOKEN}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: phone, classroom: grade }),
+                 body: JSON.stringify({
+          email,
+          password: phone,
+          phone,
+          'first name': firstName,
+          'last name': lastName,
+          school: `${school}, ${city}`,
+          classroom: grade,
+          role: 'Teacher',
+        }),
         }).catch(() => {});
 
         tr.classList.remove('row-sending');
