@@ -152,6 +152,7 @@ function diffFields(atRecord, bubbleUser) {
     'last name':  (f['שם משפחה'] || '').trim(),
     phone:        (f['טלפון']    || '').trim(),
     school:       (f['בית ספר']  || '').trim(),
+    role:                'Teacher',
     classroom:    (f['grade']    || '').trim(),
     expiration:   (f['final expiration'] || '').trim(),
     // email is a protected field in Bubble — cannot be updated via Data API
