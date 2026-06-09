@@ -665,11 +665,12 @@
     const gradeRaw = document.getElementById('grade').value;
     const grade    = gradeRaw === 'אחר' ? document.getElementById('gradeOther').value.trim() : gradeRaw;
     
-          // Check if email already exists in Airtable
-            const checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/tbl8G483uVRaWUCQZ?filterByFormula=" + formula + "&maxRecords=1", { 
-        headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` },
+          // 0. Check duplicate email in Airtable
+      var formula = encodeURIComponent("{username}='" + email + "'");
+      var checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/tbl8G483uVRaWUCQZ?filterByFormula=" + formula + "&maxRecords=1", {
+        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
       });
-      const checkData = await checkRes.json();
+      var checkData = await checkRes.json();
       if (checkData.records && checkData.records.length > 0) {
         btn.classList.remove('loading');
         btn.disabled = false;
