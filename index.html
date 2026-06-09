@@ -702,7 +702,16 @@
           'Authorization': `Bearer ${BUBBLE_TOKEN}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password: phone, classroom: grade }),
+        body: JSON.stringify({
+          email,
+          password: phone,
+          phone,
+          'first name': firstName,
+          'last name': lastName,
+          school: `${school}, ${city}`,
+          classroom: grade,
+          role: 'Teacher',
+        }),
       }).then(r => {
         if (!r.ok) r.json().then(b => console.warn('Bubble warn:', r.status, b)).catch(() => console.warn('Bubble warn:', r.status));
       }).catch(e => console.warn('Bubble fetch error:', e));
