@@ -664,6 +664,19 @@
     const workshopLeader = inWorkshop ? document.getElementById('workshopLeader').value.trim() : '';
     const gradeRaw = document.getElementById('grade').value;
     const grade    = gradeRaw === 'אחר' ? document.getElementById('gradeOther').value.trim() : gradeRaw;
+    
+          // Check if email already exists in Airtable
+      const checkRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}?filterByFormula=${encodeURIComponent(`{username}='${email}'`)}&maxRecords=1`, {
+        headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` },
+      });
+      const checkData = await checkRes.json();
+      if (checkData.records && checkData.records.length > 0) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        globalError.textContent = 'כתובת האימייל הזו כבר רשומה במערכת. אם את/ה צריך/ה עזרה, פנה/י לתמיכה.';
+        globalError.classList.add('show');
+        return;
+      }
 
     try {
       // 1. Airtable
