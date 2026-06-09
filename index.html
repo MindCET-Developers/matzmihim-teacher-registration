@@ -666,7 +666,7 @@
     const grade    = gradeRaw === 'אחר' ? document.getElementById('gradeOther').value.trim() : gradeRaw;
     
           // Check if email already exists in Airtable
-      const checkRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}?filterByFormula=${encodeURIComponent(`{username}='${email}'`)}&maxRecords=1`, {
+            const checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/tbl8G483uVRaWUCQZ?filterByFormula=" + formula + "&maxRecords=1", { 
         headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` },
       });
       const checkData = await checkRes.json();
