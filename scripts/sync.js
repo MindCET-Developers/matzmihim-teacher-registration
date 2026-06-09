@@ -103,9 +103,10 @@ async function createBubbleUser(atRecord) {
     phone:               (f['טלפון']    || '').trim(),
     'first name':        (f['שם פרטי']  || '').trim(),
     'last name':         (f['שם משפחה'] || '').trim(),
-    school:              (f['בית ספר']  || '').trim(),
+    school:              `${(f['בית ספר'] || '').trim()}, ${(f['יישוב בית ספר'] || '').trim()}`.replace(/^, |, $/g, ''),
     classroom:           (f['grade']    || '').trim(),
     expiration:          (f['final expiration'] || '').trim(),
+    role:                'Teacher',
     airtable_record_id:  atRecord.id,
   };
 
