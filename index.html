@@ -680,6 +680,20 @@
         atFields['שם מנחה השתלמות'] = workshopLeader;
       }
 
+      // 0. Check duplicate email in Airtable
+      const formula = encodeURIComponent("{username}='" + email + "'");
+      const checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + encodeURIComponent(AIRTABLE_TABLE) + "?filterByFormula=" + formula + "&maxRecords=1", {
+        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
+      });
+      const checkData = await checkRes.json();
+      if (checkData.records && checkData.records.length > 0) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        globalError.textContent = 'כתובת האימייל הזו כבר רשומה במערכת. אם את/ה צריך/ה עזרה, פנה/י לתמיכה.';
+        globalError.classList.add('show');
+        return;
+      }
+
       const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
         method: 'POST',
         headers: {
