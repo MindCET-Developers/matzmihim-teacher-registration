@@ -308,6 +308,30 @@
 
     .bulk-link a:hover { text-decoration: underline; }
 
+    .disclaimer {
+      background: #fff8ec;
+      border-right: 3px solid #e67e22;
+      border-radius: 0 8px 8px 0;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      color: #5a4a2a;
+      line-height: 1.6;
+    }
+
+    .disclaimer strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: #e67e22;
+    }
+
+    .disclaimer-footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #e74c3c;
+      margin-top: 0.8rem;
+    }
+
     @media (max-width: 420px) {
       .form-row { grid-template-columns: 1fr; }
       .card { padding: 2rem 1.2rem; }
@@ -319,6 +343,12 @@
 <div class="card">
   <div class="logo-area">
     <img src="https://matzmichim.org.il/wp-content/uploads/2025/06/Artboard-3.png" alt="מצמיחים" class="brand-logo" />
+  </div>
+
+  <div class="disclaimer">
+    <strong>שימו לב:</strong>
+    מספר המנויים בכל בית ספר/השתלמות מוגבל ומוגדר מראש, ולכן אין להעביר את הקישור הלאה.
+    הרישום פתוח רק לאנשי ונשות חינוך שקיבלו הרשאה לכך מראש.
   </div>
 
   <!-- Registration Form -->
@@ -339,48 +369,39 @@
     <div class="field">
       <label for="email">אימייל</label>
       <input type="email" id="email" placeholder="name@school.edu" />
-      <span class="err-msg" id="err-email">יש להזין כתובת אימייל תקינה</span>
+      <span class="err-msg" id="err-email">יש להזין כתובת אימייל תקינה (לדוגמה: name@example.com)</span>
     </div>
 
     <div class="field">
-      <label for="phone">טלפון</label>
-      <input type="tel" id="phone" placeholder="050-0000000" />
-      <span class="err-msg" id="err-phone">שדה חובה</span>
+      <label for="phone">טלפון <span style="font-weight:400;color:#6b7c8d">(ללא מקפים)</span></label>
+      <input type="tel" id="phone" placeholder="0501234567" />
+      <span class="err-msg" id="err-phone">יש להזין מספר טלפון נייד ישראלי — 10 ספרות ללא מקפים</span>
     </div>
 
     <div class="field">
-      <label for="citySearch">יישוב בית הספר</label>
-      <div class="autocomplete-wrap">
-        <input type="text" id="citySearch" placeholder="טוען נתונים..." autocomplete="off" disabled />
-        <input type="hidden" id="city" />
-        <ul class="autocomplete-list" id="cityList"></ul>
-      </div>
-      <span class="err-msg" id="err-city">יש לבחור יישוב מהרשימה</span>
+      <label for="regType">סוג הרשמה</label>
+      <select id="regType">
+        <option value="">— בחר —</option>
+        <option value="school">סדנא (דרך בית ספר)</option>
+        <option value="course">קורס / השתלמות</option>
+      </select>
+      <span class="err-msg" id="err-regType">יש לבחור סוג הרשמה</span>
     </div>
 
-    <div class="field" id="schoolFieldWrap">
+    <div class="field" id="schoolFieldWrap" style="display:none">
       <label for="school">בית ספר</label>
       <select id="school" disabled>
-        <option value="">בחר תחילה יישוב</option>
+        <option value="">טוען נתונים...</option>
       </select>
       <span class="err-msg" id="err-school">יש לבחור בית ספר</span>
     </div>
 
-    <div id="manualToggleWrap" style="text-align:left;margin-top:-0.5rem;margin-bottom:0.5rem">
-      <button type="button" id="manualToggleBtn" class="link-btn" onclick="toggleManual()">לא מצאתי את היישוב / בית הספר שלי ברשימה</button>
-    </div>
-
-    <div id="manualFields" style="display:none">
-      <div class="field">
-        <label for="manualCity">יישוב (הזנה ידנית)</label>
-        <input type="text" id="manualCity" placeholder="שם היישוב" autocomplete="off" />
-        <span class="err-msg" id="err-manualCity">יש להזין שם יישוב</span>
-      </div>
-      <div class="field">
-        <label for="manualSchool">בית ספר (הזנה ידנית)</label>
-        <input type="text" id="manualSchool" placeholder="שם בית הספר" autocomplete="off" />
-        <span class="err-msg" id="err-manualSchool">יש להזין שם בית ספר</span>
-      </div>
+    <div class="field" id="courseFieldWrap" style="display:none">
+      <label for="course">שם ההשתלמות</label>
+      <select id="course" disabled>
+        <option value="">טוען נתונים...</option>
+      </select>
+      <span class="err-msg" id="err-course">יש לבחור השתלמות</span>
     </div>
 
     <div class="field">
@@ -398,31 +419,12 @@
 
     <div id="gradeOtherWrap" style="display:none">
       <div class="field">
-        <label for="gradeOther">כיתה (הזנה חופשית)</label>
+        <label for="gradeOther">כיתה / תפקיד</label>
         <input type="text" id="gradeOther" placeholder="פרט את הכיתה" autocomplete="off" />
         <span class="err-msg" id="err-gradeOther">יש להזין כיתה</span>
       </div>
     </div>
 
-    <div class="field checkbox-field">
-      <label class="checkbox-label">
-        <input type="checkbox" id="inWorkshop" />
-        <span>אני נרשם/ת במסגרת השתלמות</span>
-      </label>
-    </div>
-
-    <div class="workshop-fields" id="workshopFields" style="display:none">
-      <div class="field">
-        <label for="workshopName">שם ההשתלמות</label>
-        <input type="text" id="workshopName" placeholder="שם ההשתלמות" />
-        <span class="err-msg" id="err-workshopName">שדה חובה</span>
-      </div>
-      <div class="field">
-        <label for="workshopLeader">שם המנחה</label>
-        <input type="text" id="workshopLeader" placeholder="שם המנחה" />
-        <span class="err-msg" id="err-workshopLeader">שדה חובה</span>
-      </div>
-    </div>
 
     <button type="submit" class="btn-submit" id="submitBtn">
       <span class="btn-text">הרשמה</span>
@@ -430,6 +432,8 @@
     </button>
 
     <div class="global-error" id="globalError"></div>
+
+    <p class="disclaimer-footer">רישום ללא הרשאה לא יאפשר כניסה לפלטפורמה</p>
   </form>
 
   <div class="bulk-link">
@@ -454,173 +458,115 @@
   const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
   const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';
 
-  // ─── Load schools data ────────────────────────────────────
-  let allSchools = [];
-  let allCities  = [];
+  // ─── Config ─────────────────────────────────────────────────
+  var SCHOOLS_TABLE_ID = 'tbl11LhBQj6WKU0Dr';
+  var COURSES_TABLE_ID = 'tblorHNyxETz6gRXu';
+  var TEACHERS_TABLE_ID = 'tbl8G483uVRaWUCQZ';
+  var schoolRecords = [];
+  var courseRecords = [];
 
-  async function loadSchools() {
-    try {
-      const res  = await fetch(GOV_API);
-      const data = await res.json();
-      allSchools = data.result.records;
-
-      const cityMap = {};
-      allSchools.forEach(r => {
-        const name = (r['SETL_NAME'] || '').trim();
-        if (name) cityMap[name] = true;
+  // ─── Load data from Airtable ──────────────────────────────
+  async function loadAirtableTable(tableId) {
+    var allRecords = [];
+    var offset = null;
+    do {
+      var url = "https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + tableId;
+      if (offset) url += "?offset=" + offset;
+      var res = await fetch(url, {
+        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
       });
-      allCities = Object.keys(cityMap).sort((a, b) => a.localeCompare(b, 'he'));
+      if (!res.ok) throw new Error('Airtable ' + res.status);
+      var data = await res.json();
+      allRecords = allRecords.concat(data.records || []);
+      offset = data.offset || null;
+    } while (offset);
+    return allRecords;
+  }
 
-      document.getElementById('citySearch').placeholder = 'הקלד שם יישוב...';
-      document.getElementById('citySearch').disabled = false;
+  async function loadAllData() {
+    try {
+      var results = await Promise.all([
+        loadAirtableTable(SCHOOLS_TABLE_ID),
+        loadAirtableTable(COURSES_TABLE_ID),
+      ]);
+      schoolRecords = results[0];
+      courseRecords = results[1];
+      populateSchoolDropdown();
+      populateCourseDropdown();
     } catch (e) {
-      document.getElementById('citySearch').placeholder = 'שגיאה בטעינת נתונים';
-      console.error('Failed to load schools:', e);
+      console.error('Failed to load data:', e);
     }
   }
 
-  // ─── City autocomplete ────────────────────────────────────
-  const citySearchEl = document.getElementById('citySearch');
-  const cityHiddenEl = document.getElementById('city');
-  const cityListEl   = document.getElementById('cityList');
-
-  let activeIdx = -1;
-
-  function renderCityList(items) {
-    cityListEl.innerHTML = '';
-    activeIdx = -1;
-    if (!items.length) {
-      cityListEl.innerHTML = '<li class="no-results">לא נמצאו תוצאות</li>';
-      cityListEl.classList.add('open');
-      return;
-    }
-    items.slice(0, 50).forEach((city, i) => {
-      const li = document.createElement('li');
-      li.textContent = city;
-      li.dataset.idx = i;
-      li.addEventListener('mousedown', () => selectCity(city));
-      cityListEl.appendChild(li);
+  function populateSchoolDropdown() {
+    var el = document.getElementById('school');
+    el.innerHTML = '<option value="">— בחר בית ספר —</option>';
+    schoolRecords.forEach(function(r) {
+      var name = (r.fields['בית ספר'] || '').trim();
+      if (!name) return;
+      var remaining = r.fields['נותרו'] || 0;
+      var opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = name + (remaining <= 0 ? ' (אין הרשאות פנויות)' : '');
+      opt.dataset.name = name;
+      opt.dataset.remaining = remaining;
+      opt.disabled = remaining <= 0;
+      el.appendChild(opt);
     });
-    cityListEl.classList.add('open');
+    el.disabled = false;
   }
 
-  function selectCity(city) {
-    citySearchEl.value = city;
-    cityHiddenEl.value = city;
-    cityListEl.classList.remove('open');
-    citySearchEl.classList.remove('error');
-    document.getElementById('err-city').classList.remove('show');
-    populateSchools(city);
-  }
-
-  citySearchEl.addEventListener('input', function () {
-    const q = this.value.trim();
-    cityHiddenEl.value = '';
-    populateSchools('');
-    if (!q) { cityListEl.classList.remove('open'); return; }
-    const filtered = allCities.filter(c => c.includes(q));
-    renderCityList(filtered);
-  });
-
-  citySearchEl.addEventListener('keydown', function (e) {
-    const items = cityListEl.querySelectorAll('li:not(.no-results)');
-    if (!items.length) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      activeIdx = Math.min(activeIdx + 1, items.length - 1);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      activeIdx = Math.max(activeIdx - 1, 0);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeIdx >= 0) selectCity(items[activeIdx].textContent);
-      return;
-    } else if (e.key === 'Escape') {
-      cityListEl.classList.remove('open'); return;
-    }
-    items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
-    if (activeIdx >= 0) items[activeIdx].scrollIntoView({ block: 'nearest' });
-  });
-
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.autocomplete-wrap')) cityListEl.classList.remove('open');
-  });
-
-  // ─── Populate schools dropdown ────────────────────────────
-  function populateSchools(city) {
-    const schoolEl = document.getElementById('school');
-    schoolEl.innerHTML = '<option value="">— בחר בית ספר —</option>';
-    if (!city) { schoolEl.disabled = true; return; }
-
-    const filtered = allSchools
-      .filter(r => (r['SETL_NAME'] || '').trim() === city)
-      .map(r => (r['NAME'] || '').trim())
-      .filter(Boolean);
-
-    const unique = [...new Set(filtered)].sort((a, b) => a.localeCompare(b, 'he'));
-    unique.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s;
-      opt.textContent = s;
-      schoolEl.appendChild(opt);
+  function populateCourseDropdown() {
+    var el = document.getElementById('course');
+    el.innerHTML = '<option value="">— בחר השתלמות —</option>';
+    courseRecords.forEach(function(r) {
+      var name = (r.fields['שם השתלמות'] || '').trim();
+      if (!name) return;
+      var remaining = r.fields['נותרו'] || 0;
+      var opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = name + (remaining <= 0 ? ' (אין הרשאות פנויות)' : '');
+      opt.dataset.name = name;
+      opt.dataset.remaining = remaining;
+      opt.disabled = remaining <= 0;
+      el.appendChild(opt);
     });
-    schoolEl.disabled = false;
+    el.disabled = false;
   }
 
-  // ─── Workshop checkbox ────────────────────────────────────
+  // ─── Registration type toggle ─────────────────────────────
+  document.getElementById('regType').addEventListener('change', function () {
+    var val = this.value;
+    document.getElementById('schoolFieldWrap').style.display = val === 'school' ? '' : 'none';
+    document.getElementById('courseFieldWrap').style.display = val === 'course' ? '' : 'none';
+  });
+
   document.getElementById('grade').addEventListener('change', function () {
     document.getElementById('gradeOtherWrap').style.display = this.value === 'אחר' ? 'block' : 'none';
   });
 
-  document.getElementById('inWorkshop').addEventListener('change', function () {
-    document.getElementById('workshopFields').style.display = this.checked ? 'block' : 'none';
-  });
-
-  let manualMode = false;
-  function toggleManual() {
-    manualMode = !manualMode;
-    document.getElementById('manualFields').style.display = manualMode ? 'block' : 'none';
-    // hide/show the list-based fields
-    document.querySelector('.autocomplete-wrap').style.display = manualMode ? 'none' : '';
-    document.getElementById('schoolFieldWrap').style.display  = manualMode ? 'none' : '';
-    document.getElementById('manualToggleBtn').textContent = manualMode
-      ? 'חזרה לבחירה מהרשימה'
-      : 'לא מצאתי את היישוב / בית הספר שלי ברשימה';
-    // clear any lingering errors
-    ['citySearch','school','manualCity','manualSchool'].forEach(id => {
-      document.getElementById(id)?.classList.remove('error');
-    });
-    ['err-city','err-school','err-manualCity','err-manualSchool'].forEach(id => {
-      document.getElementById(id)?.classList.remove('show');
-    });
-  }
-
   // ─── Validation ───────────────────────────────────────────
   function validate() {
-    let ok = true;
-    const inWorkshop = document.getElementById('inWorkshop').checked;
+    var ok = true;
+    var regType = document.getElementById('regType').value;
 
-    const fields = [
-      { id: 'firstName', test: v => v.trim().length > 0 },
-      { id: 'lastName',  test: v => v.trim().length > 0 },
-      { id: 'email',     test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) },
-      { id: 'phone',     test: v => v.trim().length > 0 },
-      ...(manualMode ? [
-        { id: 'manualCity',   test: v => v.trim().length > 0 },
-        { id: 'manualSchool', test: v => v.trim().length > 0 },
-      ] : [
-        { id: 'city',   test: v => v.trim() !== '', errTarget: 'citySearch' },
-        { id: 'school', test: v => v !== '' },
-      ]),
-      { id: 'grade', test: v => v !== '' },
-      ...(document.getElementById('grade').value === 'אחר' ? [
-        { id: 'gradeOther', test: v => v.trim().length > 0 },
-      ] : []),
-      ...(inWorkshop ? [
-        { id: 'workshopName',   test: v => v.trim().length > 0 },
-        { id: 'workshopLeader', test: v => v.trim().length > 0 },
-      ] : []),
+    var fields = [
+      { id: 'firstName', test: function(v) { return v.trim().length > 0; } },
+      { id: 'lastName',  test: function(v) { return v.trim().length > 0; } },
+      { id: 'email',     test: function(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); } },
+      { id: 'phone',     test: function(v) { return /^0(5[0-9]|7[0-9])\d{7}$/.test(v.trim()); } },
+      { id: 'regType',   test: function(v) { return v !== ''; } },
     ];
+    if (regType === 'school') {
+      fields.push({ id: 'school', test: function(v) { return v !== ''; } });
+    }
+    if (regType === 'course') {
+      fields.push({ id: 'course', test: function(v) { return v !== ''; } });
+    }
+    fields.push({ id: 'grade', test: function(v) { return v !== ''; } });
+    if (document.getElementById('grade').value === 'אחר') {
+      fields.push({ id: 'gradeOther', test: function(v) { return v.trim().length > 0; } });
+    }
 
     fields.forEach(({ id, test, errTarget }) => {
       const el      = document.getElementById(id);
@@ -652,40 +598,52 @@
     btn.disabled = true;
     globalError.classList.remove('show');
 
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName  = document.getElementById('lastName').value.trim();
-    const email     = document.getElementById('email').value.trim();
-    const phone     = document.getElementById('phone').value.trim();
-    const city   = manualMode ? document.getElementById('manualCity').value.trim()   : document.getElementById('city').value;
-    const school = manualMode ? document.getElementById('manualSchool').value.trim() : document.getElementById('school').value;
-    const inWorkshop     = document.getElementById('inWorkshop').checked;
-    const workshopName   = inWorkshop ? document.getElementById('workshopName').value.trim() : '';
-    const workshopLeader = inWorkshop ? document.getElementById('workshopLeader').value.trim() : '';
-    const gradeRaw = document.getElementById('grade').value;
-    const grade    = gradeRaw === 'אחר' ? document.getElementById('gradeOther').value.trim() : gradeRaw;
+    var firstName = document.getElementById('firstName').value.trim();
+    var lastName  = document.getElementById('lastName').value.trim();
+    var email     = document.getElementById('email').value.trim();
+    var phone     = document.getElementById('phone').value.trim();
+    var regType   = document.getElementById('regType').value;
+    var gradeRaw  = document.getElementById('grade').value;
+    var grade     = gradeRaw === 'אחר' ? document.getElementById('gradeOther').value.trim() : gradeRaw;
+
+    // Determine which table/record to check licenses against
+    var licenseTableId, licenseRecordId, entityName;
+    if (regType === 'school') {
+      var schoolEl = document.getElementById('school');
+      var schoolOpt = schoolEl.options[schoolEl.selectedIndex];
+      licenseTableId = SCHOOLS_TABLE_ID;
+      licenseRecordId = schoolEl.value;
+      entityName = schoolOpt.dataset.name;
+    } else {
+      var courseEl = document.getElementById('course');
+      var courseOpt = courseEl.options[courseEl.selectedIndex];
+      licenseTableId = COURSES_TABLE_ID;
+      licenseRecordId = courseEl.value;
+      entityName = courseOpt.dataset.name;
+    }
 
     try {
-      // 1. Airtable
-      const atFields = {
-        'username':          email,
-        'טלפון':             phone,
-        'שם פרטי':          firstName,
-        'שם משפחה':         lastName,
-        'יישוב בית ספר':    city,
-        'בית ספר':          school,
-        'grade':             grade,
-      };
-      if (inWorkshop) {
-        atFields['שם השתלמות']        = workshopName;
-        atFields['שם מנחה השתלמות'] = workshopLeader;
-      }
-
-      // 0. Check duplicate email in Airtable
-      const formula = encodeURIComponent("{username}='" + email + "'");
-      const checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + encodeURIComponent(AIRTABLE_TABLE) + "?filterByFormula=" + formula + "&maxRecords=1", {
+      // 0. Check remaining licenses
+      var licCheckRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + licenseTableId + "/" + licenseRecordId, {
         headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
       });
-      const checkData = await checkRes.json();
+      var licCheckData = await licCheckRes.json();
+      var remaining = licCheckData.fields['נותרו'] || 0;
+      var currentOccupied = licCheckData.fields['אוישו'] || 0;
+      if (remaining <= 0) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        globalError.textContent = 'מספר ההקצאות נגמר. יש לפנות לאיש/אשת הקשר של מצמיחים בבית הספר.';
+        globalError.classList.add('show');
+        return;
+      }
+
+      // 1. Check duplicate email
+      var formula = encodeURIComponent("{username}='" + email + "'");
+      var checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID + "?filterByFormula=" + formula + "&maxRecords=1", {
+        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
+      });
+      var checkData = await checkRes.json();
       if (checkData.records && checkData.records.length > 0) {
         btn.classList.remove('loading');
         btn.disabled = false;
@@ -694,41 +652,64 @@
         return;
       }
 
-      const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
+      // 2. Create teacher in Airtable
+      var atFields = {
+        'username':    email,
+        'טלפון':       phone,
+        'שם פרטי':    firstName,
+        'שם משפחה':   lastName,
+        'בית ספר':    entityName,
+        'grade':       grade,
+      };
+      if (regType === 'course') {
+        atFields['שם השתלמות'] = entityName;
+      }
+
+      var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ fields: atFields }),
       });
 
       if (!atRes.ok) {
-        const errBody = await atRes.json().catch(() => ({}));
+        var errBody = await atRes.json().catch(function() { return {}; });
         console.error('Airtable error:', atRes.status, errBody);
         throw new Error('Airtable ' + atRes.status + ': ' + (errBody.error?.message || JSON.stringify(errBody)));
       }
 
-      // 2. Bubble — non-fatal
+      // 3. Update אוישו +1
+      fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + licenseTableId + "/" + licenseRecordId, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fields: { 'אוישו': currentOccupied + 1 } }),
+      }).catch(function(e) { console.warn('License update error:', e); });
+
+      // 4. Bubble — non-fatal
       fetch(BUBBLE_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${BUBBLE_TOKEN}`,
+          'Authorization': 'Bearer ' + BUBBLE_TOKEN,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          email: email,
           password: phone,
-          phone,
+          phone: phone,
           'first name': firstName,
           'last name': lastName,
-          school: `${school}, ${city}`,
+          school: entityName,
           classroom: grade,
           role: 'Teacher',
         }),
-      }).then(r => {
-        if (!r.ok) r.json().then(b => console.warn('Bubble warn:', r.status, b)).catch(() => console.warn('Bubble warn:', r.status));
-      }).catch(e => console.warn('Bubble fetch error:', e));
+      }).then(function(r) {
+        if (!r.ok) r.json().then(function(b) { console.warn('Bubble warn:', r.status, b); }).catch(function() { console.warn('Bubble warn:', r.status); });
+      }).catch(function(e) { console.warn('Bubble fetch error:', e); });
 
       // 3. EmailJS (if configured)
       if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
@@ -740,10 +721,14 @@
         }).catch(e => console.warn('EmailJS warn:', e));
       }
 
-      // 4. Show success
+      // 5. Show success
       document.getElementById('regForm').style.display = 'none';
       document.getElementById('successMsg').innerHTML =
-        `ההרשמה הושלמה בהצלחה, ${firstName}!<br/>פרטיך נשמרו במערכת.`;
+        'שמחים שהצטרפת, ' + firstName + '!<br/><br/>' +
+        'הכניסה לאתר בעזרת מייל ונייד איתם נרשמת בטופס ההרשמה.<br/>' +
+        'להלן הקישור:<br/>' +
+        '<a href="https://matzmihim-teachers.bubbleapps.io/" target="_blank" style="color:#1a3c6b;font-weight:700">https://matzmihim-teachers.bubbleapps.io/</a><br/><br/>' +
+        'בברכה,<br/>אקדמיית מצמיחים.';
       document.getElementById('successScreen').classList.add('show');
 
     } catch (err) {
@@ -756,7 +741,7 @@
   });
 
   // ─── Init ─────────────────────────────────────────────────
-  loadSchools();
+  loadAllData();
 </script>
 </body>
 </html>

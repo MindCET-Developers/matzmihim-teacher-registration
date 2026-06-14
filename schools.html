@@ -499,12 +499,11 @@
 
     try {
       var atFields = {
-        'בית ספר':          school,
-        'יישוב':            city,
-        'כמות הרשאות':      licenses,
+        'בית ספר':          school + ', ' + city,
+        'מס\' הקצאות':      licenses,
       };
 
-      var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + encodeURIComponent('schools'), {
+      var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/tbl11LhBQj6WKU0Dr", {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
