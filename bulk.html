@@ -63,7 +63,7 @@
 
     .shared-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      grid-template-columns: 1fr 1fr;
       gap: 0.8rem;
       align-items: end;
     }
@@ -100,33 +100,6 @@
     }
 
     .field select:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Autocomplete */
-    .autocomplete-wrap { position: relative; }
-
-    .autocomplete-list {
-      position: absolute;
-      top: calc(100% + 4px);
-      right: 0; left: 0;
-      background: #fff;
-      border: 1.5px solid #1a3c6b;
-      border-radius: 8px;
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 200;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      display: none;
-    }
-    .autocomplete-list.open { display: block; }
-    .autocomplete-list li {
-      list-style: none;
-      padding: 0.5rem 0.8rem;
-      cursor: pointer;
-      font-size: 0.9rem;
-      color: #1a2a3a;
-    }
-    .autocomplete-list li:hover, .autocomplete-list li.active { background: #eef3fb; }
-    .autocomplete-list li.no-results { color: #9aabb8; cursor: default; }
 
     /* Apply button */
     .btn-apply {
@@ -205,8 +178,6 @@
     tbody td input.row-error { border-color: #e74c3c; background: #fff5f5; }
     tbody td select { appearance: none; -webkit-appearance: none; }
     tbody td select:disabled { opacity: 0.4; }
-
-    .row-city-wrap { position: relative; }
 
     .btn-del {
       background: none;
@@ -419,43 +390,25 @@
     <div class="panel-title">הגדרות משותפות לכל הרשומות</div>
     <div class="shared-grid">
       <div class="field">
-        <label>יישוב בית הספר</label>
-        <div class="autocomplete-wrap">
-          <input type="text" id="sharedCitySearch" placeholder="טוען..." autocomplete="off" disabled />
-          <input type="hidden" id="sharedCity" />
-          <ul class="autocomplete-list" id="sharedCityList"></ul>
-        </div>
-      </div>
-      <div class="field" id="sharedSchoolWrap">
-        <label>בית ספר</label>
-        <select id="sharedSchool" disabled>
-          <option value="">בחר יישוב תחילה</option>
+        <label>סוג הרשמה</label>
+        <select id="sharedRegType">
+          <option value="">— בחר —</option>
+          <option value="school">סדנא (דרך בית ספר)</option>
+          <option value="course">קורס / השתלמות</option>
         </select>
       </div>
-      <div class="field" id="sharedManualFields" style="display:none;grid-column:1/-1">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
-          <div>
-            <label>יישוב (הזנה ידנית)</label>
-            <input type="text" id="sharedManualCity" placeholder="שם היישוב" autocomplete="off" />
-          </div>
-          <div>
-            <label>בית ספר (הזנה ידנית)</label>
-            <input type="text" id="sharedManualSchool" placeholder="שם בית הספר" autocomplete="off" />
-          </div>
-        </div>
+      <div class="field" id="sharedSchoolWrap" style="display:none">
+        <label>בית ספר</label>
+        <select id="sharedSchool" disabled>
+          <option value="">טוען...</option>
+        </select>
       </div>
-      <div style="grid-column:1/-1;margin-top:-0.25rem">
-        <button type="button" id="sharedManualBtn" class="link-btn" onclick="toggleSharedManual()">לא מצאתי את היישוב / בית הספר ברשימה</button>
+      <div class="field" id="sharedCourseWrap" style="display:none">
+        <label>שם ההשתלמות</label>
+        <select id="sharedCourse" disabled>
+          <option value="">טוען...</option>
+        </select>
       </div>
-      <div class="field">
-        <label>שם השתלמות (אופציונלי)</label>
-        <input type="text" id="sharedWorkshop" placeholder="שם ההשתלמות" />
-      </div>
-      <div class="field">
-        <label>שם מנחה (אופציונלי)</label>
-        <input type="text" id="sharedLeader" placeholder="שם המנחה" />
-      </div>
-      <button class="btn-apply" id="btnApply" onclick="applyShared()">החל על כולם</button>
     </div>
   </div>
 
@@ -470,11 +423,7 @@
             <th>שם משפחה *</th>
             <th>אימייל *</th>
             <th>טלפון *</th>
-            <th>יישוב</th>
-            <th>בית ספר</th>
-            <th>כיתה</th>
-            <th>השתלמות</th>
-            <th>מנחה</th>
+            <th>כיתה / תפקיד</th>
             <th></th>
           </tr>
         </thead>
@@ -525,346 +474,252 @@
 
 <script src="config.js"></script>
 <script>
-  let allSchools = [];
-  let allCities  = [];
-  let rowCount   = 0;
+  var SCHOOLS_TABLE_ID = 'tbl11LhBQj6WKU0Dr';
+  var COURSES_TABLE_ID = 'tblorHNyxETz6gRXu';
+  var TEACHERS_TABLE_ID = 'tbl8G483uVRaWUCQZ';
+  var schoolRecords = [];
+  var courseRecords = [];
+  var rowCount = 0;
 
-  // ─── Load schools ─────────────────────────────────────────
-  async function loadSchools() {
-    try {
-      const data = await fetch(GOV_API).then(r => r.json());
-      allSchools = data.result.records;
-      const cityMap = {};
-      allSchools.forEach(r => { const n = (r.SETL_NAME || '').trim(); if (n) cityMap[n] = true; });
-      allCities = Object.keys(cityMap).sort((a, b) => a.localeCompare(b, 'he'));
-      document.getElementById('sharedCitySearch').placeholder = 'הקלד שם יישוב...';
-      document.getElementById('sharedCitySearch').disabled = false;
-    } catch(e) {
-      document.getElementById('sharedCitySearch').placeholder = 'שגיאה בטעינה';
-    }
-  }
-
-  function getSchoolsForCity(city) {
-    const filtered = allSchools
-      .filter(r => (r.SETL_NAME || '').trim() === city)
-      .map(r => (r.NAME || '').trim())
-      .filter(Boolean);
-    return [...new Set(filtered)].sort((a, b) => a.localeCompare(b, 'he'));
-  }
-
-  // ─── Shared city autocomplete ─────────────────────────────
-  function makeAutocomplete(searchId, hiddenId, listId, onSelect) {
-    const searchEl = document.getElementById(searchId);
-    const hiddenEl = document.getElementById(hiddenId);
-    const listEl   = document.getElementById(listId);
-    let idx = -1;
-
-    function render(items) {
-      listEl.innerHTML = '';
-      idx = -1;
-      if (!items.length) {
-        listEl.innerHTML = '<li class="no-results">לא נמצאו תוצאות</li>';
-        listEl.classList.add('open');
-        return;
-      }
-      items.slice(0, 50).forEach(city => {
-        const li = document.createElement('li');
-        li.textContent = city;
-        li.addEventListener('mousedown', () => select(city));
-        listEl.appendChild(li);
+  // ─── Load data from Airtable ──────────────────────────────
+  async function loadAirtableTable(tableId) {
+    var allRecords = [];
+    var offset = null;
+    do {
+      var url = "https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + tableId;
+      if (offset) url += "?offset=" + offset;
+      var res = await fetch(url, {
+        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
       });
-      listEl.classList.add('open');
-    }
-
-    function select(city) {
-      searchEl.value = city;
-      hiddenEl.value = city;
-      listEl.classList.remove('open');
-      onSelect(city);
-    }
-
-    searchEl.addEventListener('input', function() {
-      const q = this.value.trim();
-      hiddenEl.value = '';
-      onSelect('');
-      if (!q) { listEl.classList.remove('open'); return; }
-      render(allCities.filter(c => c.includes(q)));
-    });
-
-    searchEl.addEventListener('keydown', function(e) {
-      const items = listEl.querySelectorAll('li:not(.no-results)');
-      if (!items.length) return;
-      if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx+1, items.length-1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(idx-1, 0); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (idx >= 0) select(items[idx].textContent); return; }
-      else if (e.key === 'Escape') { listEl.classList.remove('open'); return; }
-      items.forEach((li, i) => li.classList.toggle('active', i === idx));
-      if (idx >= 0) items[idx].scrollIntoView({ block: 'nearest' });
-    });
-
-    document.addEventListener('click', e => {
-      if (!e.target.closest(`#${listId}`) && !e.target.closest(`#${searchId}`))
-        listEl.classList.remove('open');
-    });
+      if (!res.ok) throw new Error('Airtable ' + res.status);
+      var data = await res.json();
+      allRecords = allRecords.concat(data.records || []);
+      offset = data.offset || null;
+    } while (offset);
+    return allRecords;
   }
 
-  function fillSchoolSelect(selectEl, city, selectedValue) {
-    selectEl.innerHTML = '<option value="">— בחר בית ספר —</option>';
-    if (!city) { selectEl.disabled = true; return; }
-    getSchoolsForCity(city).forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      if (s === selectedValue) opt.selected = true;
-      selectEl.appendChild(opt);
-    });
-    selectEl.disabled = false;
+  async function loadAllData() {
+    try {
+      var results = await Promise.all([
+        loadAirtableTable(SCHOOLS_TABLE_ID),
+        loadAirtableTable(COURSES_TABLE_ID),
+      ]);
+      schoolRecords = results[0];
+      courseRecords = results[1];
+      populateSchoolDropdown();
+      populateCourseDropdown();
+    } catch (e) {
+      console.error('Failed to load data:', e);
+    }
   }
 
-  // Shared panel autocomplete
-  makeAutocomplete('sharedCitySearch', 'sharedCity', 'sharedCityList', city => {
-    fillSchoolSelect(document.getElementById('sharedSchool'), city, '');
+  function populateSchoolDropdown() {
+    var el = document.getElementById('sharedSchool');
+    el.innerHTML = '<option value="">— בחר בית ספר —</option>';
+    schoolRecords.forEach(function(r) {
+      var name = (r.fields['בית ספר'] || '').trim();
+      if (!name) return;
+      var remaining = r.fields['נותרו'] || 0;
+      var opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = name + (remaining <= 0 ? ' (אין הרשאות פנויות)' : '');
+      opt.dataset.name = name;
+      opt.dataset.remaining = remaining;
+      opt.disabled = remaining <= 0;
+      el.appendChild(opt);
+    });
+    el.disabled = false;
+  }
+
+  function populateCourseDropdown() {
+    var el = document.getElementById('sharedCourse');
+    el.innerHTML = '<option value="">— בחר השתלמות —</option>';
+    courseRecords.forEach(function(r) {
+      var name = (r.fields['שם השתלמות'] || '').trim();
+      if (!name) return;
+      var remaining = r.fields['נותרו'] || 0;
+      var opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = name + (remaining <= 0 ? ' (אין הרשאות פנויות)' : '');
+      opt.dataset.name = name;
+      opt.dataset.remaining = remaining;
+      opt.disabled = remaining <= 0;
+      el.appendChild(opt);
+    });
+    el.disabled = false;
+  }
+
+  // ─── Registration type toggle ─────────────────────────────
+  document.getElementById('sharedRegType').addEventListener('change', function() {
+    var val = this.value;
+    document.getElementById('sharedSchoolWrap').style.display = val === 'school' ? '' : 'none';
+    document.getElementById('sharedCourseWrap').style.display = val === 'course' ? '' : 'none';
   });
 
-  // ─── Shared manual toggle ────────────────────────────────
-  let sharedManualMode = false;
-  function toggleSharedManual() {
-    sharedManualMode = !sharedManualMode;
-    document.getElementById('sharedManualFields').style.display = sharedManualMode ? 'block' : 'none';
-    document.querySelector('#sharedCitySearch').closest('.field').style.display = sharedManualMode ? 'none' : '';
-    document.getElementById('sharedSchoolWrap').style.display = sharedManualMode ? 'none' : '';
-    document.getElementById('sharedManualBtn').textContent = sharedManualMode
-      ? 'חזרה לבחירה מהרשימה'
-      : 'לא מצאתי את היישוב / בית הספר ברשימה';
-  }
-
-  // ─── Apply shared to all rows ─────────────────────────────
-  function applyShared() {
-    const city   = sharedManualMode
-      ? document.getElementById('sharedManualCity').value.trim()
-      : document.getElementById('sharedCity').value;
-    const school = sharedManualMode
-      ? document.getElementById('sharedManualSchool').value.trim()
-      : document.getElementById('sharedSchool').value;
-    const workshop = document.getElementById('sharedWorkshop').value.trim();
-    const leader   = document.getElementById('sharedLeader').value.trim();
-
-    document.querySelectorAll('#bulkBody tr').forEach(tr => {
-      if (city) {
-        tr.querySelector('.row-city-search').value = city;
-        tr.querySelector('.row-city-hidden').value = city;
-        if (sharedManualMode) {
-          // manual: just put text directly into the school dropdown as a custom option
-          const sel = tr.querySelector('.row-school');
-          sel.innerHTML = `<option value="${school}">${school || '—'}</option>`;
-          sel.value = school;
-        } else {
-          fillSchoolSelect(tr.querySelector('.row-school'), city, school);
-        }
-      }
-      if (workshop) tr.querySelector('.row-workshop').value = workshop;
-      if (leader)   tr.querySelector('.row-leader').value   = leader;
-    });
-  }
-
   // ─── Table rows ───────────────────────────────────────────
-  function addRow(data = {}) {
+  function addRow(data) {
+    data = data || {};
     rowCount++;
-    const rid = rowCount;
-    const tbody = document.getElementById('bulkBody');
-    const tr = document.createElement('tr');
+    var rid = rowCount;
+    var tbody = document.getElementById('bulkBody');
+    var tr = document.createElement('tr');
     tr.dataset.rowId = rid;
 
-    tr.innerHTML = `
-      <td style="text-align:center;color:#9aabb8;font-size:0.8rem;padding-top:0.6rem">${rid}</td>
-      <td><input class="row-firstName" type="text" placeholder="שם פרטי" value="${esc(data.firstName||'')}" /></td>
-      <td><input class="row-lastName"  type="text" placeholder="שם משפחה" value="${esc(data.lastName||'')}" /></td>
-      <td><input class="row-email"     type="email" placeholder="אימייל" value="${esc(data.email||'')}" /></td>
-      <td><input class="row-phone"     type="tel"   placeholder="טלפון" value="${esc(data.phone||'')}" /></td>
-      <td>
-        <div class="row-city-wrap">
-          <input class="row-city-search" type="text" placeholder="יישוב" autocomplete="off" value="${esc(data.city||'')}" />
-          <input class="row-city-hidden" type="hidden" value="${esc(data.city||'')}" />
-          <ul class="autocomplete-list row-city-list"></ul>
-        </div>
-      </td>
-      <td>
-        <select class="row-school" ${data.city ? '' : 'disabled'}>
-          <option value="">—</option>
-        </select>
-      </td>
-      <td>
-        <select class="row-grade">
-          <option value="">—</option>
-          <option ${data.grade==='א׳'?'selected':''}>א׳</option>
-          <option ${data.grade==='ב׳'?'selected':''}>ב׳</option>
-          <option ${data.grade==='ג׳'?'selected':''}>ג׳</option>
-          <option ${data.grade==='ד׳'?'selected':''}>ד׳</option>
-          <option ${data.grade==='ה׳'?'selected':''}>ה׳</option>
-          <option ${data.grade==='ו׳'?'selected':''}>ו׳</option>
-          <option ${data.grade==='ז׳'?'selected':''}>ז׳</option>
-          <option ${data.grade==='ח׳'?'selected':''}>ח׳</option>
-          <option ${data.grade==='ט׳'?'selected':''}>ט׳</option>
-          <option ${data.grade==='י׳'?'selected':''}>י׳</option>
-          <option ${data.grade==='י״א'?'selected':''}>י״א</option>
-          <option ${data.grade==='י״ב'?'selected':''}>י״ב</option>
-          <option value="אחר" ${data.grade==='אחר'?'selected':''}>אחר</option>
-        </select>
-      </td>
-      <td><input class="row-workshop" type="text" placeholder="השתלמות" value="${esc(data.workshop||'')}" /></td>
-      <td><input class="row-leader"   type="text" placeholder="מנחה" value="${esc(data.leader||'')}" /></td>
-      <td><button class="btn-del" title="מחק שורה" onclick="this.closest('tr').remove()">✕</button></td>
-    `;
+    tr.innerHTML =
+      '<td style="text-align:center;color:#9aabb8;font-size:0.8rem;padding-top:0.6rem">' + rid + '</td>' +
+      '<td><input class="row-firstName" type="text" placeholder="שם פרטי" value="' + esc(data.firstName || '') + '" /></td>' +
+      '<td><input class="row-lastName"  type="text" placeholder="שם משפחה" value="' + esc(data.lastName || '') + '" /></td>' +
+      '<td><input class="row-email"     type="email" placeholder="אימייל" value="' + esc(data.email || '') + '" /></td>' +
+      '<td><input class="row-phone"     type="tel"   placeholder="0501234567" value="' + esc(data.phone || '') + '" /></td>' +
+      '<td><input class="row-grade"     type="text"  placeholder="כיתה / תפקיד" value="' + esc(data.grade || '') + '" /></td>' +
+      '<td><button class="btn-del" title="מחק שורה" onclick="this.closest(\'tr\').remove()">✕</button></td>';
 
     tbody.appendChild(tr);
-
-    // Wire up row autocomplete
-    const citySearch = tr.querySelector('.row-city-search');
-    const cityHidden = tr.querySelector('.row-city-hidden');
-    const cityList   = tr.querySelector('.row-city-list');
-    const schoolSel  = tr.querySelector('.row-school');
-    let rowIdx = -1;
-
-    if (data.city) fillSchoolSelect(schoolSel, data.city, data.school || '');
-
-    function renderRowList(items) {
-      cityList.innerHTML = '';
-      rowIdx = -1;
-      if (!items.length) { cityList.innerHTML = '<li class="no-results">לא נמצאו</li>'; }
-      else items.slice(0, 50).forEach(c => {
-        const li = document.createElement('li');
-        li.textContent = c;
-        li.addEventListener('mousedown', () => selectRowCity(c));
-        cityList.appendChild(li);
-      });
-      cityList.classList.add('open');
-    }
-
-    function selectRowCity(c) {
-      citySearch.value = c;
-      cityHidden.value = c;
-      cityList.classList.remove('open');
-      fillSchoolSelect(schoolSel, c, '');
-    }
-
-    citySearch.addEventListener('input', function() {
-      const q = this.value.trim();
-      cityHidden.value = '';
-      fillSchoolSelect(schoolSel, '', '');
-      if (!q) { cityList.classList.remove('open'); return; }
-      renderRowList(allCities.filter(c => c.includes(q)));
-    });
-
-    citySearch.addEventListener('keydown', function(e) {
-      const items = cityList.querySelectorAll('li:not(.no-results)');
-      if (!items.length) return;
-      if (e.key === 'ArrowDown') { e.preventDefault(); rowIdx = Math.min(rowIdx+1, items.length-1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); rowIdx = Math.max(rowIdx-1, 0); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (rowIdx >= 0) selectRowCity(items[rowIdx].textContent); return; }
-      else if (e.key === 'Escape') { cityList.classList.remove('open'); return; }
-      items.forEach((li, i) => li.classList.toggle('active', i === rowIdx));
-      if (rowIdx >= 0) items[rowIdx].scrollIntoView({ block: 'nearest' });
-    });
-
-    citySearch.addEventListener('blur', () => setTimeout(() => cityList.classList.remove('open'), 150));
   }
 
   function esc(s) { return String(s).replace(/"/g, '&quot;'); }
 
   // ─── Submit all ───────────────────────────────────────────
   async function submitAll() {
-    const rows = [...document.querySelectorAll('#bulkBody tr')];
+    var regType = document.getElementById('sharedRegType').value;
+    if (!regType) { alert('יש לבחור סוג הרשמה (סדנא / קורס)'); return; }
 
-    // Collect non-empty rows
-    const entries = [];
-    let hasError = false;
+    var licenseTableId, licenseRecordId, entityName;
+    if (regType === 'school') {
+      var schoolEl = document.getElementById('sharedSchool');
+      if (!schoolEl.value) { alert('יש לבחור בית ספר'); return; }
+      var schoolOpt = schoolEl.options[schoolEl.selectedIndex];
+      licenseTableId = SCHOOLS_TABLE_ID;
+      licenseRecordId = schoolEl.value;
+      entityName = schoolOpt.dataset.name;
+    } else {
+      var courseEl = document.getElementById('sharedCourse');
+      if (!courseEl.value) { alert('יש לבחור השתלמות'); return; }
+      var courseOpt = courseEl.options[courseEl.selectedIndex];
+      licenseTableId = COURSES_TABLE_ID;
+      licenseRecordId = courseEl.value;
+      entityName = courseOpt.dataset.name;
+    }
 
-    rows.forEach(tr => {
-      const firstName = tr.querySelector('.row-firstName').value.trim();
-      const lastName  = tr.querySelector('.row-lastName').value.trim();
-      const email     = tr.querySelector('.row-email').value.trim();
-      const phone     = tr.querySelector('.row-phone').value.trim();
-      const city      = tr.querySelector('.row-city-hidden').value.trim();
-      const school    = tr.querySelector('.row-school').value.trim();
-      const grade     = tr.querySelector('.row-grade').value.trim();
-      const workshop  = tr.querySelector('.row-workshop').value.trim();
-      const leader    = tr.querySelector('.row-leader').value.trim();
+    var rows = [].slice.call(document.querySelectorAll('#bulkBody tr'));
+    var entries = [];
+    var hasError = false;
 
-      // Skip fully empty rows
+    rows.forEach(function(tr) {
+      var firstName = tr.querySelector('.row-firstName').value.trim();
+      var lastName  = tr.querySelector('.row-lastName').value.trim();
+      var email     = tr.querySelector('.row-email').value.trim();
+      var phone     = tr.querySelector('.row-phone').value.trim();
+      var grade     = tr.querySelector('.row-grade').value.trim();
+
       if (!firstName && !lastName && !email && !phone) return;
 
-      // Validate required fields
-      let rowOk = true;
-      ['.row-firstName', '.row-email', '.row-phone'].forEach(sel => {
-        const el = tr.querySelector(sel);
-        const val = el.value.trim();
-        const needsEmail = sel === '.row-email';
-        const valid = needsEmail ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) : val.length > 0;
+      var rowOk = true;
+      ['.row-firstName', '.row-email', '.row-phone'].forEach(function(sel) {
+        var el = tr.querySelector(sel);
+        var val = el.value.trim();
+        var valid;
+        if (sel === '.row-email') {
+          valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        } else if (sel === '.row-phone') {
+          valid = /^0(5[0-9]|7[0-9])\d{7}$/.test(val);
+        } else {
+          valid = val.length > 0;
+        }
         el.classList.toggle('row-error', !valid);
         if (!valid) { rowOk = false; hasError = true; }
       });
 
-      if (rowOk) entries.push({ tr, firstName, lastName, email, phone, city, school, grade, workshop, leader });
+      if (rowOk) entries.push({ tr: tr, firstName: firstName, lastName: lastName, email: email, phone: phone, grade: grade });
     });
 
-    if (hasError) { alert('יש שדות חסרים או שגויים — תקן לפני השליחה'); return; }
+    if (hasError) { alert('יש שדות חסרים או שגויים — יש לוודא אימייל תקין וטלפון נייד ישראלי (10 ספרות ללא מקפים)'); return; }
     if (!entries.length) { alert('אין שורות למשלוח'); return; }
 
-    const btn = document.getElementById('btnSubmitAll');
+    // Check remaining licenses
+    try {
+      var licCheckRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + licenseTableId + "/" + licenseRecordId, {
+        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
+      });
+      var licCheckData = await licCheckRes.json();
+      var remaining = licCheckData.fields['נותרו'] || 0;
+      var currentOccupied = licCheckData.fields['אוישו'] || 0;
+      if (remaining < entries.length) {
+        alert('אין מספיק הקצאות. נותרו ' + remaining + ' הקצאות אבל יש ' + entries.length + ' שורות לרישום.');
+        return;
+      }
+    } catch (e) {
+      alert('שגיאה בבדיקת הקצאות: ' + e.message);
+      return;
+    }
+
+    var btn = document.getElementById('btnSubmitAll');
     btn.disabled = true;
     btn.classList.add('sending');
     btn.querySelector('.submit-text').textContent = 'שולח...';
 
-    const progressWrap = document.getElementById('progressWrap');
-    const progressFill = document.getElementById('progressFill');
-    const progressLabel = document.getElementById('progressLabel');
+    var progressWrap = document.getElementById('progressWrap');
+    var progressFill = document.getElementById('progressFill');
+    var progressLabel = document.getElementById('progressLabel');
     progressWrap.classList.add('show');
 
-    let done = 0, succeeded = 0;
-    const failures = [];
+    var done = 0, succeeded = 0;
+    var failures = [];
 
     async function sendOne(entry) {
-      const { tr, firstName, lastName, email, phone, city, school, grade, workshop, leader } = entry;
+      var tr = entry.tr;
       tr.classList.add('row-sending');
 
-      const atFields = {
-        'username':       email,
-        'טלפון':          phone,
-        'שם פרטי':       firstName,
-        'שם משפחה':      lastName,
-        'יישוב בית ספר': city,
-        'בית ספר':       school,
+      var atFields = {
+        'username':    entry.email,
+        'טלפון':       entry.phone,
+        'שם פרטי':    entry.firstName,
+        'שם משפחה':   entry.lastName,
+        'בית ספר':    entityName,
       };
-      if (grade)    atFields['grade']                  = grade;
-      if (workshop) atFields['שם השתלמות']             = workshop;
-      if (leader)   atFields['שם מנחה השתלמות']      = leader;
+      if (entry.grade) atFields['grade'] = entry.grade;
+      if (regType === 'course') {
+        atFields['שם השתלמות'] = entityName;
+      }
 
       try {
-        const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
+        // Check duplicate email
+        var formula = encodeURIComponent("{username}='" + entry.email + "'");
+        var checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID + "?filterByFormula=" + formula + "&maxRecords=1", {
+          headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
+        });
+        var checkData = await checkRes.json();
+        if (checkData.records && checkData.records.length > 0) {
+          throw new Error('אימייל כבר רשום במערכת');
+        }
+
+        var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+          headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN, 'Content-Type': 'application/json' },
           body: JSON.stringify({ fields: atFields }),
         });
 
         if (!atRes.ok) {
-          const b = await atRes.json().catch(() => ({}));
+          var b = await atRes.json().catch(function() { return {}; });
           throw new Error('Airtable ' + atRes.status + ': ' + (b.error?.message || ''));
         }
 
         // Bubble — non-fatal
         fetch(BUBBLE_URL, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${BUBBLE_TOKEN}`, 'Content-Type': 'application/json' },
+          headers: { 'Authorization': 'Bearer ' + BUBBLE_TOKEN, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email,
-            password: phone,
-            phone,
-            'first name': firstName,
-            'last name': lastName,
-            school: `${school}, ${city}`,
-            classroom: grade,
+            email: entry.email,
+            password: entry.phone,
+            phone: entry.phone,
+            'first name': entry.firstName,
+            'last name': entry.lastName,
+            school: entityName,
+            classroom: entry.grade,
             role: 'Teacher',
           }),
-        }).catch(() => {});
+        }).catch(function() {});
 
         tr.classList.remove('row-sending');
         tr.classList.add('row-ok');
@@ -872,19 +727,28 @@
       } catch(err) {
         tr.classList.remove('row-sending');
         tr.classList.add('row-fail');
-        failures.push({ name: `${firstName} ${lastName}`, email, error: err.message });
+        failures.push({ name: entry.firstName + ' ' + entry.lastName, email: entry.email, error: err.message });
       }
 
       done++;
-      const pct = Math.round(done / entries.length * 100);
+      var pct = Math.round(done / entries.length * 100);
       progressFill.style.width = pct + '%';
-      progressLabel.textContent = `${done} / ${entries.length} נשלחו`;
+      progressLabel.textContent = done + ' / ' + entries.length + ' נשלחו';
     }
 
-    // Send in batches of 5 to avoid rate limits
-    const BATCH = 5;
-    for (let i = 0; i < entries.length; i += BATCH) {
+    // Send in batches of 5
+    var BATCH = 5;
+    for (var i = 0; i < entries.length; i += BATCH) {
       await Promise.allSettled(entries.slice(i, i + BATCH).map(sendOne));
+    }
+
+    // Update אוישו with total succeeded
+    if (succeeded > 0) {
+      fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + licenseTableId + "/" + licenseRecordId, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { 'אוישו': currentOccupied + succeeded } }),
+      }).catch(function(e) { console.warn('License update error:', e); });
     }
 
     btn.classList.remove('sending');
@@ -892,85 +756,81 @@
     btn.disabled = false;
 
     // Show summary
-    const summaryEl = document.getElementById('summary');
-    const summaryBody = document.getElementById('summaryBody');
-    summaryBody.innerHTML = `
-      <div class="summary-row ok">✅ ${succeeded} רשומות נשמרו בהצלחה</div>
-      ${failures.length ? `<div class="summary-row fail">❌ ${failures.length} רשומות נכשלו</div>` : ''}
-      ${failures.map(f => `<div class="summary-row fail" style="padding-right:1rem;font-size:0.82rem">${f.name} (${f.email}): ${f.error}</div>`).join('')}
-    `;
+    var summaryEl = document.getElementById('summary');
+    var summaryBody = document.getElementById('summaryBody');
+    var html = '<div class="summary-row ok">✅ ' + succeeded + ' רשומות נשמרו בהצלחה</div>';
+    if (failures.length) {
+      html += '<div class="summary-row fail">❌ ' + failures.length + ' רשומות נכשלו</div>';
+      failures.forEach(function(f) {
+        html += '<div class="summary-row fail" style="padding-right:1rem;font-size:0.82rem">' + f.name + ' (' + f.email + '): ' + f.error + '</div>';
+      });
+    }
+    if (succeeded > 0) {
+      html += '<div class="summary-row" style="margin-top:0.8rem">נותרו ' + (remaining - succeeded) + ' הקצאות.</div>';
+    }
+    summaryBody.innerHTML = html;
     summaryEl.classList.add('show');
     summaryEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // ─── Init ─────────────────────────────────────────────────
-  loadSchools().then(() => {
-    for (let i = 0; i < 10; i++) addRow();
+  loadAllData().then(function() {
+    for (var i = 0; i < 10; i++) addRow();
   });
 
   // ─── Excel paste ──────────────────────────────────────────
-  const FIELD_OPTIONS = [
+  var FIELD_OPTIONS = [
     { value: '',             label: '— דלג —' },
     { value: 'firstName',   label: 'שם פרטי' },
     { value: 'lastName',    label: 'שם משפחה' },
     { value: 'email',       label: 'אימייל' },
     { value: 'phone',       label: 'טלפון' },
-    { value: 'city',        label: 'יישוב' },
-    { value: 'school',      label: 'בית ספר' },
-    { value: 'workshop',    label: 'השתלמות' },
-    { value: 'leader',      label: 'מנחה' },
+    { value: 'grade',       label: 'כיתה / תפקיד' },
   ];
 
-  // Auto-detect field from header text
-  const HEADER_HINTS = {
+  var HEADER_HINTS = {
     'שם פרטי': 'firstName', 'first': 'firstName', 'firstname': 'firstName',
     'שם משפחה': 'lastName', 'last': 'lastName', 'lastname': 'lastName',
     'אימייל': 'email', 'מייל': 'email', 'email': 'email',
     'טלפון': 'phone', 'נייד': 'phone', 'phone': 'phone', 'tel': 'phone',
-    'יישוב': 'city', 'עיר': 'city', 'city': 'city', 'settlement': 'city',
-    'בית ספר': 'school', 'school': 'school', 'מוסד': 'school',
-    'השתלמות': 'workshop', 'workshop': 'workshop',
-    'מנחה': 'leader', 'leader': 'leader',
+    'כיתה': 'grade', 'תפקיד': 'grade', 'grade': 'grade', 'class': 'grade',
   };
 
-  let pastedRows = [];
-  let pastedHeaders = [];
+  var pastedRows = [];
+  var pastedHeaders = [];
 
   document.addEventListener('paste', function(e) {
-    // Only if no input/textarea is focused
-    const active = document.activeElement;
+    var active = document.activeElement;
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return;
 
-    const text = e.clipboardData.getData('text/plain');
+    var text = e.clipboardData.getData('text/plain');
     if (!text.trim()) return;
 
     e.preventDefault();
     parsePaste(text);
   });
 
-  // Also allow paste anywhere on table
   document.getElementById('bulkTable').addEventListener('paste', function(e) {
-    const text = e.clipboardData.getData('text/plain');
+    var text = e.clipboardData.getData('text/plain');
     if (!text.trim()) return;
     e.preventDefault();
     parsePaste(text);
   });
 
   function parsePaste(text) {
-    const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+    var lines = text.trim().split(/\r?\n/).filter(function(l) { return l.trim(); });
     if (!lines.length) return;
 
-    const allRows = lines.map(l => l.split('\t'));
-    const firstRow = allRows[0];
+    var allRows = lines.map(function(l) { return l.split('\t'); });
+    var firstRow = allRows[0];
 
-    // Detect if first row is a header (contains no @ and no pure numbers)
-    const looksLikeHeader = firstRow.every(cell => !cell.includes('@') && !/^\d{9,}$/.test(cell.trim()));
+    var looksLikeHeader = firstRow.every(function(cell) { return !cell.includes('@') && !/^\d{9,}$/.test(cell.trim()); });
 
     if (looksLikeHeader) {
-      pastedHeaders = firstRow.map(c => c.trim());
+      pastedHeaders = firstRow.map(function(c) { return c.trim(); });
       pastedRows = allRows.slice(1);
     } else {
-      pastedHeaders = firstRow.map((_, i) => `עמודה ${i + 1}`);
+      pastedHeaders = firstRow.map(function(_, i) { return 'עמודה ' + (i + 1); });
       pastedRows = allRows;
     }
 
@@ -979,30 +839,27 @@
   }
 
   function openMapModal() {
-    // Preview: first 2 data rows
-    const previewLines = pastedRows.slice(0, 2).map(r => r.join(' | ')).join('\n');
-    document.getElementById('mapPreview').textContent =
-      `${pastedRows.length} שורות • תצוגה מקדימה:\n${previewLines}`;
+    var previewLines = pastedRows.slice(0, 2).map(function(r) { return r.join(' | '); }).join('\n');
+    document.getElementById('mapPreview').textContent = pastedRows.length + ' שורות • תצוגה מקדימה:\n' + previewLines;
 
-    // Build mapping grid
-    const grid = document.getElementById('mapGrid');
+    var grid = document.getElementById('mapGrid');
     grid.innerHTML = '';
-    pastedHeaders.forEach((header, colIdx) => {
-      const autoMatch = HEADER_HINTS[header.toLowerCase()] || HEADER_HINTS[header] || '';
+    pastedHeaders.forEach(function(header, colIdx) {
+      var autoMatch = HEADER_HINTS[header.toLowerCase()] || HEADER_HINTS[header] || '';
 
-      const label = document.createElement('div');
+      var label = document.createElement('div');
       label.className = 'col-label';
       label.textContent = header;
 
-      const arrow = document.createElement('div');
+      var arrow = document.createElement('div');
       arrow.className = 'arrow';
       arrow.textContent = '←';
 
-      const sel = document.createElement('select');
+      var sel = document.createElement('select');
       sel.dataset.colIdx = colIdx;
-      sel.id = `map-col-${colIdx}`;
-      FIELD_OPTIONS.forEach(opt => {
-        const o = document.createElement('option');
+      sel.id = 'map-col-' + colIdx;
+      FIELD_OPTIONS.forEach(function(opt) {
+        var o = document.createElement('option');
         o.value = opt.value;
         o.textContent = opt.label;
         if (opt.value === autoMatch) o.selected = true;
@@ -1023,51 +880,31 @@
     pastedHeaders = [];
   }
 
-  async function applyPasteMapping() {
-    // Build column → field map
-    const mapping = {};
-    pastedHeaders.forEach((_, colIdx) => {
-      const sel = document.getElementById(`map-col-${colIdx}`);
+  function applyPasteMapping() {
+    var mapping = {};
+    pastedHeaders.forEach(function(_, colIdx) {
+      var sel = document.getElementById('map-col-' + colIdx);
       if (sel && sel.value) mapping[colIdx] = sel.value;
     });
 
-    // Capture before closing (closeMapModal clears these)
-    const rowsToImport = pastedRows.slice();
-
+    var rowsToImport = pastedRows.slice();
     closeMapModal();
 
-    // Clear existing empty rows, keep rows that have data
-    document.querySelectorAll('#bulkBody tr').forEach(tr => {
-      const hasData = ['row-firstName','row-email','row-phone'].some(
-        cls => tr.querySelector('.' + cls)?.value.trim()
-      );
+    document.querySelectorAll('#bulkBody tr').forEach(function(tr) {
+      var hasData = ['row-firstName','row-email','row-phone'].some(function(cls) {
+        var el = tr.querySelector('.' + cls);
+        return el && el.value.trim();
+      });
       if (!hasData) tr.remove();
     });
 
-    // Add rows from paste
-    for (const cols of rowsToImport) {
-      const data = {};
-      Object.entries(mapping).forEach(([colIdx, field]) => {
-        data[field] = (cols[colIdx] || '').trim();
+    rowsToImport.forEach(function(cols) {
+      var data = {};
+      Object.keys(mapping).forEach(function(colIdx) {
+        data[mapping[colIdx]] = (cols[colIdx] || '').trim();
       });
-      if (!data.firstName && !data.email) continue; // skip empty
+      if (!data.firstName && !data.email) return;
       addRow(data);
-    }
-
-    // Wait for allSchools then resolve city→school for each row
-    let tries = 0;
-    while (allSchools.length === 0 && tries < 20) {
-      await new Promise(r => setTimeout(r, 300));
-      tries++;
-    }
-
-    document.querySelectorAll('#bulkBody tr').forEach(tr => {
-      const cityVal = tr.querySelector('.row-city-hidden').value;
-      if (cityVal) {
-        tr.querySelector('.row-city-search').value = cityVal;
-        const sel = tr.querySelector('.row-school');
-        fillSchoolSelect(sel, cityVal, tr.querySelector('.row-school').dataset.pendingSchool || '');
-      }
     });
   }
 </script>
