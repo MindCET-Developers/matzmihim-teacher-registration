@@ -520,7 +520,7 @@
     var el = document.getElementById('course');
     el.innerHTML = '<option value="">— בחר השתלמות —</option>';
     courseRecords.forEach(function(r) {
-      var name = (r.fields['שם השתלמות'] || '').trim();
+      var name = (r.fields['השתלמות'] || '').trim();
       if (!name) return;
       var remaining = r.fields['נותרו'] || 0;
       var opt = document.createElement('option');
@@ -662,7 +662,7 @@
         'grade':       grade,
       };
       if (regType === 'course') {
-        atFields['שם השתלמות'] = entityName;
+        atFields['השתלמות'] = entityName;
       }
 
       var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID, {
