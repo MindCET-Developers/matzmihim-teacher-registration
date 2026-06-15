@@ -357,12 +357,12 @@
       <div class="field">
         <label for="firstName">שם פרטי</label>
         <input type="text" id="firstName" placeholder="ישראל" />
-        <span class="err-msg" id="err-firstName">שדה חובה</span>
+        <span class="err-msg" id="err-firstName">יש להזין שם פרטי בעברית (לפחות 2 תווים)</span>
       </div>
       <div class="field">
         <label for="lastName">שם משפחה</label>
         <input type="text" id="lastName" placeholder="ישראלי" />
-        <span class="err-msg" id="err-lastName">שדה חובה</span>
+        <span class="err-msg" id="err-lastName">יש להזין שם משפחה בעברית (לפחות 2 תווים)</span>
       </div>
     </div>
 
@@ -551,8 +551,8 @@
     var regType = document.getElementById('regType').value;
 
     var fields = [
-      { id: 'firstName', test: function(v) { return v.trim().length > 0; } },
-      { id: 'lastName',  test: function(v) { return v.trim().length > 0; } },
+     { id: 'firstName', test: function(v) { return /^[\u0590-\u05FF\s]{2,}$/.test(v.trim()); } },
+     { id: 'lastName',  test: function(v) { return /^[\u0590-\u05FF\s]{2,}$/.test(v.trim()); } },
       { id: 'email',     test: function(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); } },
       { id: 'phone',     test: function(v) { return /^0(5[0-9]|7[0-9])\d{7}$/.test(v.trim()); } },
       { id: 'regType',   test: function(v) { return v !== ''; } },
@@ -737,6 +737,22 @@
   });
 
   // ─── Init ─────────────────────────────────────────────────
+  // ─── Live validation ────────────────────────────────────
+function liveValidate(id, testFn) {
+  var el = document.getElementById(id);
+  var err = document.getElementById('err-' + id);
+  el.addEventListener('input', function() {
+    var val = this.value;
+    if (val.trim() === '') { this.classList.remove('error'); err.classList.remove('show'); return; }
+    if (testFn(val)) { this.classList.remove('error'); err.classList.remove('show'); }
+    else { this.classList.add('error'); err.classList.add('show'); }
+  });
+}
+
+liveValidate('firstName', function(v) { return /^[\u0590-\u05FF\s]{2,}$/.test(v.trim()); });
+liveValidate('lastName',  function(v) { return /^[\u0590-\u05FF\s]{2,}$/.test(v.trim()); });
+liveValidate('email',     function(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); });
+liveValidate('phone',     function(v) { return /^0(5[0-9]|7[0-9])\d{7}$/.test(v.trim()); });
   loadAllData();
 </script>
 </body>
