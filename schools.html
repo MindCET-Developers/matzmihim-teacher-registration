@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מצמיחים — הוספת בית ספר / השתלמות</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1a2a3a;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .logo-area {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .brand-logo {
+      max-width: 200px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto 0.6rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1.1rem;
+    }
+
+    .field label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #3a4f63;
+      margin-bottom: 0.35rem;
+    }
+
+    .field input,
+    .field select {
+      border: 1.5px solid #d0dae4;
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.95rem;
+      font-family: 'Heebo', sans-serif;
+      color: #1a2a3a;
+      background: #f8fafc;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7c8d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 0.9rem center;
+      padding-left: 2.2rem;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: #1a3c6b;
+      box-shadow: 0 0 0 3px rgba(26,60,107,0.1);
+      background: #fff;
+    }
+
+    .field input.error,
+    .field select.error { border-color: #e74c3c; }
+
+    .field .err-msg {
+      font-size: 0.78rem;
+      color: #e74c3c;
+      margin-top: 0.25rem;
+      display: none;
+    }
+
+    .field .err-msg.show { display: block; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.8rem;
+      background: #1a3c6b;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Heebo', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover:not(:disabled) { background: #14305a; }
+    .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .btn-submit.loading .spinner { display: inline-block; }
+    .btn-submit.loading .btn-text { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .global-error {
+      background: #fdecea;
+      color: #c0392b;
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-size: 0.88rem;
+      margin-top: 0.8rem;
+      display: none;
+    }
+
+    .global-error.show { display: block; }
+
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    .success-screen.show { display: block; }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: #e8f5e9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.2rem;
+    }
+
+    .success-icon svg { width: 36px; height: 36px; }
+
+    .success-screen h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1a3c6b;
+      margin-bottom: 0.5rem;
+    }
+
+    .success-screen p {
+      color: #6b7c8d;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 420px) {
+      .card { padding: 2rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo-area">
+    <img src="https://matzmichim.org.il/wp-content/uploads/2025/06/Artboard-3.png" alt="מצמיחים" class="brand-logo" />
+  </div>
+
+  <form id="entityForm" novalidate>
+    <div class="field">
+      <label for="entityType">סוג</label>
+      <select id="entityType">
+        <option value="">— בחר —</option>
+        <option value="school">בית ספר</option>
+        <option value="course">קורס / השתלמות</option>
+      </select>
+      <span class="err-msg" id="err-entityType">יש לבחור סוג</span>
+    </div>
+
+    <div class="field" id="nameFieldWrap" style="display:none">
+      <label for="entityName" id="nameLabel">שם</label>
+      <input type="text" id="entityName" placeholder="" />
+      <span class="err-msg" id="err-entityName">יש להזין שם</span>
+    </div>
+
+    <div class="field" id="licensesFieldWrap" style="display:none">
+      <label for="licenses">מספר הקצאות</label>
+      <input type="number" id="licenses" min="1" step="1" placeholder="הזן מספר שלם" />
+      <span class="err-msg" id="err-licenses">יש להזין מספר שלם חיובי</span>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submitBtn">
+      <span class="btn-text">שליחה</span>
+      <span class="spinner"></span>
+    </button>
+
+    <div class="global-error" id="globalError"></div>
+  </form>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <h2>הרישום בוצע בהצלחה!</h2>
+    <p id="successMsg"></p>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  // ─── Entity type toggle ───────────────────────────────
+  document.getElementById('entityType').addEventListener('change', function() {
+    var val = this.value;
+    var show = val !== '';
+    document.getElementById('nameFieldWrap').style.display = show ? '' : 'none';
+    document.getElementById('licensesFieldWrap').style.display = show ? '' : 'none';
+
+    if (val === 'course') {
+      document.getElementById('nameLabel').textContent = 'שם ההשתלמות';
+      document.getElementById('entityName').placeholder = 'לדוגמה: פסגה נתניה';
+    } else if (val === 'school') {
+      document.getElementById('nameLabel').textContent = 'שם בית הספר';
+      document.getElementById('entityName').placeholder = 'לדוגמה: בית ספר הרצל, תל אביב';
+    }
+  });
+
+  // ─── Validation ───────────────────────────────────────
+  function validate() {
+    var ok = true;
+    var fields = [
+      { id: 'entityType', test: function(v) { return v !== ''; } },
+      { id: 'entityName', test: function(v) { return v.trim().length >= 2; } },
+      { id: 'licenses',   test: function(v) { var n = Number(v); return Number.isInteger(n) && n > 0; } },
+    ];
+
+    fields.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      var err = document.getElementById('err-' + f.id);
+      if (!f.test(el.value)) {
+        el.classList.add('error');
+        err.classList.add('show');
+        ok = false;
+      } else {
+        el.classList.remove('error');
+        err.classList.remove('show');
+      }
+    });
+
+    return ok;
+  }
+
+  // ─── Submit ───────────────────────────────────────────
+  document.getElementById('entityForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    var btn = document.getElementById('submitBtn');
+    var globalError = document.getElementById('globalError');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    globalError.classList.remove('show');
+
+    var entityType = document.getElementById('entityType').value;
+    var entityName = document.getElementById('entityName').value.trim();
+    var licenses = parseInt(document.getElementById('licenses').value);
+
+    var tableId = entityType === 'course' ? 'tblorHNyxETz6gRXu' : 'tbl11LhBQj6WKU0Dr';
+    var fieldName = entityType === 'course' ? 'השתלמות' : 'בית ספר';
+
+    var atFields = {};
+    atFields[fieldName] = entityName;
+    atFields["מס' הקצאות"] = licenses;
+
+    try {
+      var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + tableId, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fields: atFields }),
+      });
+
+      if (!atRes.ok) {
+        var errBody = await atRes.json().catch(function() { return {}; });
+        throw new Error('Airtable ' + atRes.status + ': ' + (errBody.error?.message || JSON.stringify(errBody)));
+      }
+
+      document.getElementById('entityForm').style.display = 'none';
+      var typeLabel = entityType === 'course' ? 'ההשתלמות' : 'בית הספר';
+      document.getElementById('successMsg').innerHTML = typeLabel + ' <strong>' + entityName + '</strong> נוסף/ה בהצלחה עם ' + licenses + ' הקצאות.';
+      document.getElementById('successScreen').classList.add('show');
+
+    } catch (err) {
+      globalError.textContent = 'שגיאה: ' + err.message;
+      globalError.classList.add('show');
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
