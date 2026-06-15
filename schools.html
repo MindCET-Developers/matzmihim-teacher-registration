@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>מצמיחים — הרשמת בית ספר</title>
+  <title>מצמיחים — הוספת בית ספר / השתלמות</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -97,67 +97,6 @@
     }
 
     .field .err-msg.show { display: block; }
-
-    .field select:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .autocomplete-wrap { position: relative; }
-
-    .autocomplete-list {
-      position: absolute;
-      top: calc(100% + 4px);
-      right: 0;
-      left: 0;
-      background: #fff;
-      border: 1.5px solid #1a3c6b;
-      border-radius: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 100;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      display: none;
-    }
-
-    .autocomplete-list.open { display: block; }
-
-    .autocomplete-list li {
-      list-style: none;
-      padding: 0.6rem 0.9rem;
-      cursor: pointer;
-      font-size: 0.95rem;
-      color: #1a2a3a;
-      transition: background 0.1s;
-    }
-
-    .autocomplete-list li:hover,
-    .autocomplete-list li.active { background: #eef3fb; }
-
-    .autocomplete-list li.no-results {
-      color: #9aabb8;
-      cursor: default;
-    }
-
-    .link-btn {
-      background: none;
-      border: none;
-      color: #2563b0;
-      font-size: 0.82rem;
-      cursor: pointer;
-      padding: 0;
-      text-decoration: underline;
-      font-family: inherit;
-    }
-    .link-btn:hover { color: #1a3c6b; }
-
-    #manualFields {
-      background: #fff8ec;
-      border-right: 3px solid #e67e22;
-      border-radius: 0 8px 8px 0;
-      padding: 0.9rem 1rem 0.2rem;
-      margin-bottom: 1rem;
-    }
 
     .btn-submit {
       width: 100%;
@@ -254,46 +193,27 @@
     <img src="https://matzmichim.org.il/wp-content/uploads/2025/06/Artboard-3.png" alt="מצמיחים" class="brand-logo" />
   </div>
 
-  <form id="schoolForm" novalidate>
+  <form id="entityForm" novalidate>
     <div class="field">
-      <label for="citySearch">יישוב</label>
-      <div class="autocomplete-wrap">
-        <input type="text" id="citySearch" placeholder="טוען נתונים..." autocomplete="off" disabled />
-        <input type="hidden" id="city" />
-        <ul class="autocomplete-list" id="cityList"></ul>
-      </div>
-      <span class="err-msg" id="err-city">יש לבחור יישוב מהרשימה</span>
-    </div>
-
-    <div class="field" id="schoolFieldWrap">
-      <label for="school">בית ספר</label>
-      <select id="school" disabled>
-        <option value="">בחר תחילה יישוב</option>
+      <label for="entityType">סוג</label>
+      <select id="entityType">
+        <option value="">— בחר —</option>
+        <option value="school">בית ספר</option>
+        <option value="course">קורס / השתלמות</option>
       </select>
-      <span class="err-msg" id="err-school">יש לבחור בית ספר</span>
+      <span class="err-msg" id="err-entityType">יש לבחור סוג</span>
     </div>
 
-    <div id="manualToggleWrap" style="text-align:left;margin-top:-0.5rem;margin-bottom:0.5rem">
-      <button type="button" id="manualToggleBtn" class="link-btn" onclick="toggleManual()">לא מצאתי את היישוב / בית הספר שלי ברשימה</button>
+    <div class="field" id="nameFieldWrap" style="display:none">
+      <label for="entityName" id="nameLabel">שם</label>
+      <input type="text" id="entityName" placeholder="" />
+      <span class="err-msg" id="err-entityName">יש להזין שם</span>
     </div>
 
-    <div id="manualFields" style="display:none">
-      <div class="field">
-        <label for="manualCity">יישוב (הזנה ידנית)</label>
-        <input type="text" id="manualCity" placeholder="שם היישוב" autocomplete="off" />
-        <span class="err-msg" id="err-manualCity">יש להזין שם יישוב</span>
-      </div>
-      <div class="field">
-        <label for="manualSchool">בית ספר (הזנה ידנית)</label>
-        <input type="text" id="manualSchool" placeholder="שם בית הספר" autocomplete="off" />
-        <span class="err-msg" id="err-manualSchool">יש להזין שם בית ספר</span>
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="licenses">כמות הרשאות</label>
-      <input type="number" id="licenses" min="1" placeholder="הזן מספר" />
-      <span class="err-msg" id="err-licenses">יש להזין כמות הרשאות (מספר חיובי)</span>
+    <div class="field" id="licensesFieldWrap" style="display:none">
+      <label for="licenses">מספר הקצאות</label>
+      <input type="number" id="licenses" min="1" step="1" placeholder="הזן מספר שלם" />
+      <span class="err-msg" id="err-licenses">יש להזין מספר שלם חיובי</span>
     </div>
 
     <button type="submit" class="btn-submit" id="submitBtn">
@@ -310,170 +230,47 @@
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
     </div>
-    <h2>בית הספר נרשם בהצלחה!</h2>
-    <p id="successMsg">הפרטים נשמרו במערכת.</p>
+    <h2>הרישום בוצע בהצלחה!</h2>
+    <p id="successMsg"></p>
   </div>
 </div>
 
 <script src="config.js"></script>
 <script>
-  // ─── Load schools data ────────────────────────────────────
-  let allSchools = [];
-  let allCities  = [];
+  // ─── Entity type toggle ───────────────────────────────
+  document.getElementById('entityType').addEventListener('change', function() {
+    var val = this.value;
+    var show = val !== '';
+    document.getElementById('nameFieldWrap').style.display = show ? '' : 'none';
+    document.getElementById('licensesFieldWrap').style.display = show ? '' : 'none';
 
-  async function loadSchools() {
-    try {
-      const res  = await fetch(GOV_API);
-      const data = await res.json();
-      allSchools = data.result.records;
-
-      const cityMap = {};
-      allSchools.forEach(r => {
-        const name = (r['SETL_NAME'] || '').trim();
-        if (name) cityMap[name] = true;
-      });
-      allCities = Object.keys(cityMap).sort((a, b) => a.localeCompare(b, 'he'));
-
-      document.getElementById('citySearch').placeholder = 'הקלד שם יישוב...';
-      document.getElementById('citySearch').disabled = false;
-    } catch (e) {
-      document.getElementById('citySearch').placeholder = 'שגיאה בטעינת נתונים';
-      console.error('Failed to load schools:', e);
+    if (val === 'course') {
+      document.getElementById('nameLabel').textContent = 'שם ההשתלמות';
+      document.getElementById('entityName').placeholder = 'לדוגמה: פסגה נתניה';
+    } else if (val === 'school') {
+      document.getElementById('nameLabel').textContent = 'שם בית הספר';
+      document.getElementById('entityName').placeholder = 'לדוגמה: בית ספר הרצל, תל אביב';
     }
-  }
-
-  // ─── City autocomplete ────────────────────────────────────
-  const citySearchEl = document.getElementById('citySearch');
-  const cityHiddenEl = document.getElementById('city');
-  const cityListEl   = document.getElementById('cityList');
-
-  let activeIdx = -1;
-
-  function renderCityList(items) {
-    cityListEl.innerHTML = '';
-    activeIdx = -1;
-    if (!items.length) {
-      cityListEl.innerHTML = '<li class="no-results">לא נמצאו תוצאות</li>';
-      cityListEl.classList.add('open');
-      return;
-    }
-    items.slice(0, 50).forEach((city, i) => {
-      const li = document.createElement('li');
-      li.textContent = city;
-      li.dataset.idx = i;
-      li.addEventListener('mousedown', () => selectCity(city));
-      cityListEl.appendChild(li);
-    });
-    cityListEl.classList.add('open');
-  }
-
-  function selectCity(city) {
-    citySearchEl.value = city;
-    cityHiddenEl.value = city;
-    cityListEl.classList.remove('open');
-    citySearchEl.classList.remove('error');
-    document.getElementById('err-city').classList.remove('show');
-    populateSchools(city);
-  }
-
-  citySearchEl.addEventListener('input', function () {
-    const q = this.value.trim();
-    cityHiddenEl.value = '';
-    populateSchools('');
-    if (!q) { cityListEl.classList.remove('open'); return; }
-    const filtered = allCities.filter(c => c.includes(q));
-    renderCityList(filtered);
   });
 
-  citySearchEl.addEventListener('keydown', function (e) {
-    const items = cityListEl.querySelectorAll('li:not(.no-results)');
-    if (!items.length) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      activeIdx = Math.min(activeIdx + 1, items.length - 1);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      activeIdx = Math.max(activeIdx - 1, 0);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeIdx >= 0) selectCity(items[activeIdx].textContent);
-      return;
-    } else if (e.key === 'Escape') {
-      cityListEl.classList.remove('open'); return;
-    }
-    items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
-    if (activeIdx >= 0) items[activeIdx].scrollIntoView({ block: 'nearest' });
-  });
-
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.autocomplete-wrap')) cityListEl.classList.remove('open');
-  });
-
-  // ─── Populate schools dropdown ────────────────────────────
-  function populateSchools(city) {
-    const schoolEl = document.getElementById('school');
-    schoolEl.innerHTML = '<option value="">— בחר בית ספר —</option>';
-    if (!city) { schoolEl.disabled = true; return; }
-
-    const filtered = allSchools
-      .filter(r => (r['SETL_NAME'] || '').trim() === city)
-      .map(r => (r['NAME'] || '').trim())
-      .filter(Boolean);
-
-    const unique = [...new Set(filtered)].sort((a, b) => a.localeCompare(b, 'he'));
-    unique.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s;
-      opt.textContent = s;
-      schoolEl.appendChild(opt);
-    });
-    schoolEl.disabled = false;
-  }
-
-  // ─── Manual toggle ────────────────────────────────────────
-  let manualMode = false;
-  function toggleManual() {
-    manualMode = !manualMode;
-    document.getElementById('manualFields').style.display = manualMode ? 'block' : 'none';
-    document.querySelector('.autocomplete-wrap').style.display = manualMode ? 'none' : '';
-    document.getElementById('schoolFieldWrap').style.display  = manualMode ? 'none' : '';
-    document.getElementById('manualToggleBtn').textContent = manualMode
-      ? 'חזרה לבחירה מהרשימה'
-      : 'לא מצאתי את היישוב / בית הספר שלי ברשימה';
-    ['citySearch','school','manualCity','manualSchool'].forEach(id => {
-      document.getElementById(id)?.classList.remove('error');
-    });
-    ['err-city','err-school','err-manualCity','err-manualSchool'].forEach(id => {
-      document.getElementById(id)?.classList.remove('show');
-    });
-  }
-
-  // ─── Validation ───────────────────────────────────────────
+  // ─── Validation ───────────────────────────────────────
   function validate() {
-    let ok = true;
-
-    const fields = [
-      ...(manualMode ? [
-        { id: 'manualCity',   test: v => v.trim().length > 0 },
-        { id: 'manualSchool', test: v => v.trim().length > 0 },
-      ] : [
-        { id: 'city',   test: v => v.trim() !== '', errTarget: 'citySearch' },
-        { id: 'school', test: v => v !== '' },
-      ]),
-      { id: 'licenses', test: v => parseInt(v) > 0 },
+    var ok = true;
+    var fields = [
+      { id: 'entityType', test: function(v) { return v !== ''; } },
+      { id: 'entityName', test: function(v) { return v.trim().length >= 2; } },
+      { id: 'licenses',   test: function(v) { var n = Number(v); return Number.isInteger(n) && n > 0; } },
     ];
 
-    fields.forEach(({ id, test, errTarget }) => {
-      const el        = document.getElementById(id);
-      const highlight = document.getElementById(errTarget || id);
-      const err       = document.getElementById('err-' + id);
-      const val       = el.value;
-      if (!test(val)) {
-        highlight.classList.add('error');
+    fields.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      var err = document.getElementById('err-' + f.id);
+      if (!f.test(el.value)) {
+        el.classList.add('error');
         err.classList.add('show');
         ok = false;
       } else {
-        highlight.classList.remove('error');
+        el.classList.remove('error');
         err.classList.remove('show');
       }
     });
@@ -481,29 +278,31 @@
     return ok;
   }
 
-  // ─── Submit ───────────────────────────────────────────────
-  document.getElementById('schoolForm').addEventListener('submit', async function (e) {
+  // ─── Submit ───────────────────────────────────────────
+  document.getElementById('entityForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     if (!validate()) return;
 
-    const btn = document.getElementById('submitBtn');
-    const globalError = document.getElementById('globalError');
+    var btn = document.getElementById('submitBtn');
+    var globalError = document.getElementById('globalError');
     btn.classList.add('loading');
     btn.disabled = true;
     globalError.classList.remove('show');
 
-    const city     = manualMode ? document.getElementById('manualCity').value.trim()   : document.getElementById('city').value;
-    const school   = manualMode ? document.getElementById('manualSchool').value.trim() : document.getElementById('school').value;
-    const licenses = parseInt(document.getElementById('licenses').value);
+    var entityType = document.getElementById('entityType').value;
+    var entityName = document.getElementById('entityName').value.trim();
+    var licenses = parseInt(document.getElementById('licenses').value);
+
+    var tableId = entityType === 'course' ? 'tblorHNyxETz6gRXu' : 'tbl11LhBQj6WKU0Dr';
+    var fieldName = entityType === 'course' ? 'השתלמות' : 'בית ספר';
+
+    var atFields = {};
+    atFields[fieldName] = entityName;
+    atFields["מס' הקצאות"] = licenses;
 
     try {
-      var atFields = {
-        'בית ספר':          school + ', ' + city,
-        'מס\' הקצאות':      licenses,
-      };
-
-      var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/tbl11LhBQj6WKU0Dr", {
+      var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + tableId, {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
@@ -514,25 +313,21 @@
 
       if (!atRes.ok) {
         var errBody = await atRes.json().catch(function() { return {}; });
-        console.error('Airtable error:', atRes.status, errBody);
         throw new Error('Airtable ' + atRes.status + ': ' + (errBody.error?.message || JSON.stringify(errBody)));
       }
 
-      document.getElementById('schoolForm').style.display = 'none';
-      document.getElementById('successMsg').innerHTML = 'בית הספר ' + school + ' נרשם בהצלחה עם ' + licenses + ' הרשאות.';
+      document.getElementById('entityForm').style.display = 'none';
+      var typeLabel = entityType === 'course' ? 'ההשתלמות' : 'בית הספר';
+      document.getElementById('successMsg').innerHTML = typeLabel + ' <strong>' + entityName + '</strong> נוסף/ה בהצלחה עם ' + licenses + ' הקצאות.';
       document.getElementById('successScreen').classList.add('show');
 
     } catch (err) {
-      console.error('Submit error:', err);
       globalError.textContent = 'שגיאה: ' + err.message;
       globalError.classList.add('show');
       btn.classList.remove('loading');
       btn.disabled = false;
     }
   });
-
-  // ─── Init ─────────────────────────────────────────────────
-  loadSchools();
 </script>
 </body>
 </html>
