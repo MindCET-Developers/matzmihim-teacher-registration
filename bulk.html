@@ -679,10 +679,6 @@
         'בית ספר':    entityName,
       };
       if (entry.grade) atFields['grade'] = entry.grade;
-      if (regType === 'course') {
-        atFields['השתלמות'] = entityName;
-      }
-
       try {
         // Check duplicate email
         var formula = encodeURIComponent("{username}='" + entry.email + "'");

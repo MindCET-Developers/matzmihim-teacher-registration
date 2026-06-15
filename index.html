@@ -661,10 +661,6 @@
         'בית ספר':    entityName,
         'grade':       grade,
       };
-      if (regType === 'course') {
-        atFields['השתלמות'] = entityName;
-      }
-
       var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID, {
         method: 'POST',
         headers: {
