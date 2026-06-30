@@ -41,6 +41,9 @@ The repository includes `.github/workflows/deploy-worker.yml`.
 Add this GitHub repository secret:
 
 - `CLOUDFLARE_API_TOKEN` - a Cloudflare API token with permission to deploy Workers.
+- `CLOUDFLARE_ACCOUNT_ID` - the Cloudflare account id for the Workers account.
+
+The repository also includes **Sync Worker Secrets**. Run it manually with the Airtable `Form Config` table id to copy the existing GitHub secrets into the Cloudflare Worker without revealing their values.
 
 Then run **Deploy Cloudflare Worker** manually from GitHub Actions, or merge changes to `master` to deploy worker changes automatically.
 
