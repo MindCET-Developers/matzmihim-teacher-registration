@@ -94,9 +94,9 @@ async function handleEntities(url, env) {
   const records = await fetchAllRecords(env, entity.tableId);
   return json(records.map((r) => ({
     id: r.id,
-    name: String(r.fields[entity.nameField] || '').trim(),
-    remaining: Number(r.fields['נותרו'] || 0),
-    occupied: Number(r.fields['אוישו'] || 0),
+    name: String(firstFieldValue(r.fields, entity.nameFields) || '').trim(),
+    remaining: Number(firstFieldValue(r.fields, ['נותרו']) || 0),
+    occupied: Number(firstFieldValue(r.fields, ['אוישו']) || 0),
   })).filter((r) => r.name), env);
 }
 
@@ -110,10 +110,10 @@ async function handleAdminEntities(url, env) {
     rows.push(...records.map((record) => ({
       id: record.id,
       type: currentType,
-      name: String(record.fields[entity.nameField] || '').trim(),
-      licenses: Number(record.fields["מס' הקצאות"] || 0),
-      occupied: Number(record.fields['אוישו'] || 0),
-      remaining: Number(record.fields['נותרו'] || 0),
+      name: String(firstFieldValue(record.fields, entity.nameFields) || '').trim(),
+      licenses: Number(firstFieldValue(record.fields, ["מס' הקצאות", 'מספר הקצאות']) || 0),
+      occupied: Number(firstFieldValue(record.fields, ['אוישו']) || 0),
+      remaining: Number(firstFieldValue(record.fields, ['נותרו']) || 0),
     })).filter((row) => row.name));
   }
   rows.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name, 'he'));
@@ -131,7 +131,7 @@ async function handleCreateEntity(request, env) {
 
   const entity = entityDefinition(env, type);
   const fields = {
-    [entity.nameField]: name,
+    [entity.writeNameField]: name,
     "מס' הקצאות": licenses,
     'אוישו': 0,
   };
@@ -209,7 +209,7 @@ async function createRegistration(env, body, config, formType) {
   const occupied = Number(licRecord.fields['אוישו'] || 0);
   if (!body.skipLicenseCheck && remaining <= 0) throw httpError(400, 'מספר ההקצאות נגמר.');
 
-  const entityName = String(licRecord.fields[license.nameField] || '').trim();
+  const entityName = String(firstFieldValue(licRecord.fields, license.nameFields) || '').trim();
   registrationFields.username = email;
   registrationFields['טלפון'] = phone;
   registrationFields['בית ספר'] = entityName;
@@ -256,8 +256,15 @@ async function resolveLicense(env, regType, entityId) {
 
 function entityDefinition(env, type) {
   return type === 'school'
-    ? { type, tableId: env.SCHOOLS_TABLE_ID, nameField: 'בית ספר' }
-    : { type, tableId: env.COURSES_TABLE_ID, nameField: 'השתלמות' };
+    ? { type, tableId: env.SCHOOLS_TABLE_ID, nameFields: ['שם בית הספר', 'בית ספר', 'שם ביה"ס', 'שם בית ספר'], writeNameField: 'שם בית הספר' }
+    : { type, tableId: env.COURSES_TABLE_ID, nameFields: ['השתלמות', 'שם ההשתלמות', 'שם השתלמות'], writeNameField: 'השתלמות' };
+}
+
+function firstFieldValue(fields, candidates) {
+  for (const name of candidates) {
+    if (fields[name] !== undefined && fields[name] !== null && fields[name] !== '') return fields[name];
+  }
+  return '';
 }
 
 async function sendBubble(env, fields, entityName, airtableId) {
