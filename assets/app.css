@@ -51,7 +51,7 @@ body.centered {
 }
 
 .admin-page .page-wrap {
-  max-width: 1360px;
+  max-width: 1580px;
 }
 
 .logo-area {
@@ -489,7 +489,7 @@ tbody td select {
 .admin-layout {
   display: grid;
   gap: 1.4rem;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
 }
 
 .admin-grid {
