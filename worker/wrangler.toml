@@ -1,0 +1,18 @@
+name = "matzmihim-registration-api"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+AIRTABLE_TEACHERS_TABLE_ID = "tbl8G483uVRaWUCQZ"
+SCHOOLS_TABLE_ID = "tbl11LhBQj6WKU0Dr"
+COURSES_TABLE_ID = "tblorHNyxETz6gRXu"
+ALLOWED_ORIGIN = "https://mindcet-developers.github.io"
+
+# Set these as encrypted secrets with wrangler:
+# wrangler secret put AIRTABLE_TOKEN
+# wrangler secret put AIRTABLE_BASE
+# wrangler secret put FORM_CONFIG_TABLE_ID
+# wrangler secret put ADMIN_PASSWORD_HASH
+# wrangler secret put SESSION_SECRET
+# wrangler secret put BUBBLE_URL
+# wrangler secret put BUBBLE_TOKEN

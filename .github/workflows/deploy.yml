@@ -25,15 +25,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate config.js from secrets
+      - name: Generate public config.js
         run: |
           cat > config.js <<EOF
-          const AIRTABLE_TOKEN = '${{ secrets.AIRTABLE_TOKEN }}';
-          const AIRTABLE_BASE  = '${{ secrets.AIRTABLE_BASE }}';
-          const AIRTABLE_TABLE = 'teachers';
-          const BUBBLE_URL     = '${{ secrets.BUBBLE_URL }}';
-          const BUBBLE_TOKEN   = '${{ secrets.BUBBLE_TOKEN }}';
-          const GOV_API        = 'https://data.gov.il/api/3/action/datastore_search?resource_id=99b92311-9675-4351-85cd-9ed5ee69a787&limit=32000';
+          window.MATZMIHIM_CONFIG = {
+            API_BASE_URL: '${{ vars.API_BASE_URL }}'
+          };
           EOF
 
       - name: Setup Pages
