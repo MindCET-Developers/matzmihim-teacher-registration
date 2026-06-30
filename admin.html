@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מצמיחים - ניהול טופס</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="page-wrap">
+  <div class="header">
+    <div class="header-brand">
+      <img src="https://matzmichim.org.il/wp-content/uploads/2025/06/Artboard-3.png" alt="מצמיחים" style="height:48px;width:auto" />
+      <div>
+        <h1>ניהול טופס הרשמה</h1>
+        <p>בחירת שדות מתוך Airtable, סדר, חובה וסוג קלט</p>
+      </div>
+    </div>
+    <a class="back-link" href="index.html">← חזרה לטופס</a>
+  </div>
+
+  <div class="admin-layout">
+    <aside class="panel">
+      <div class="panel-title">כניסת אדמין</div>
+      <form id="loginForm">
+        <div class="field">
+          <label for="adminPassword">סיסמה</label>
+          <input id="adminPassword" type="password" autocomplete="current-password" />
+        </div>
+        <button class="btn" type="submit" id="btnLogin">כניסה</button>
+      </form>
+      <div class="status-box" id="loginStatus"></div>
+      <div class="global-error" id="globalError"></div>
+    </aside>
+
+    <main class="panel" id="adminPanel" style="display:none">
+      <div class="panel-title">שדות הטופס</div>
+      <div class="bottom-bar" style="margin-bottom:1rem">
+        <button class="btn-secondary" type="button" id="btnReload">רענן מ-Airtable</button>
+        <button class="btn-secondary" type="button" id="btnAddMissing">הוסף שדות חסרים</button>
+        <button class="btn" type="button" id="btnSave">שמור הגדרות</button>
+      </div>
+      <div class="admin-grid header-row">
+        <div>מוצג</div>
+        <div>תווית</div>
+        <div>שדה Airtable</div>
+        <div>סוג</div>
+        <div>חובה</div>
+        <div>סדר</div>
+        <div>בטפסים</div>
+        <div></div>
+      </div>
+      <div id="fieldsList"></div>
+      <div class="status-box" id="saveStatus"></div>
+    </main>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/form-config.js"></script>
+<script src="assets/dynamic-form.js"></script>
+<script>
+  var schemaFields = [];
+  var formFields = [];
+  var loggedIn = false;
+  var typeOptions = ['text', 'email', 'tel', 'number', 'date', 'textarea', 'select', 'grade'];
+
+  function showGlobal(message) {
+    var el = document.getElementById('globalError');
+    el.textContent = message;
+    el.classList.add('show');
+  }
+
+  function clearGlobal() {
+    document.getElementById('globalError').classList.remove('show');
+  }
+
+  function showStatus(id, message) {
+    var el = document.getElementById(id);
+    el.textContent = message;
+    el.classList.add('show');
+  }
+
+  function hideStatus(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    clearGlobal();
+    var password = document.getElementById('adminPassword').value;
+    try {
+      await MatzmihimApi.login(password);
+      loggedIn = true;
+      showStatus('loginStatus', 'התחברת בהצלחה.');
+      document.getElementById('adminPanel').style.display = '';
+      await loadAdminData();
+    } catch (err) {
+      showGlobal(err.message);
+    }
+  });
+
+  document.getElementById('btnReload').addEventListener('click', loadAdminData);
+  document.getElementById('btnAddMissing').addEventListener('click', addMissingSchemaFields);
+  document.getElementById('btnSave').addEventListener('click', saveConfig);
+
+  async function loadAdminData() {
+    if (!loggedIn) return;
+    hideStatus('saveStatus');
+    var data = await Promise.all([MatzmihimApi.getSchema(), MatzmihimApi.getConfig()]);
+    schemaFields = data[0].fields;
+    formFields = MatzmihimConfig.normalizeConfig(data[1]);
+    renderFields();
+  }
+
+  function fieldByName(name) {
+    return schemaFields.find(function (field) { return field.name === name; });
+  }
+
+  function inputTypeForAirtable(field) {
+    if (!field) return 'text';
+    if (field.type === 'email') return 'email';
+    if (field.type === 'phoneNumber') return 'tel';
+    if (field.type === 'number' || field.type === 'currency' || field.type === 'percent') return 'number';
+    if (field.type === 'date' || field.type === 'dateTime') return 'date';
+    if (field.type === 'multilineText' || field.type === 'richText') return 'textarea';
+    if (field.options && field.options.length) return 'select';
+    return 'text';
+  }
+
+  function addMissingSchemaFields() {
+    var existing = new Set(formFields.map(function (field) { return field.airtableField; }));
+    var maxOrder = formFields.reduce(function (max, field) { return Math.max(max, Number(field.order) || 0); }, 0);
+    schemaFields.forEach(function (field) {
+      if (existing.has(field.name)) return;
+      maxOrder += 10;
+      formFields.push({
+        key: field.name.replace(/\s+/g, '_'),
+        label: field.name,
+        airtableField: field.name,
+        inputType: inputTypeForAirtable(field),
+        required: false,
+        visible: false,
+        order: maxOrder,
+        options: field.options || [],
+        appliesTo: ['single', 'bulk'],
+      });
+    });
+    renderFields();
+  }
+
+  function renderFields() {
+    formFields = MatzmihimConfig.normalizeConfig(formFields);
+    var list = document.getElementById('fieldsList');
+    list.innerHTML = '';
+    formFields.forEach(function (field, index) {
+      var schema = fieldByName(field.airtableField);
+      var row = document.createElement('div');
+      row.className = 'admin-grid admin-field-row';
+      row.dataset.index = index;
+      row.innerHTML =
+        '<label class="checkbox-line"><input type="checkbox" data-prop="visible" ' + (field.visible ? 'checked' : '') + '> כן</label>' +
+        '<input data-prop="label" value="' + DynamicForm.escapeHtml(field.label) + '">' +
+        '<select data-prop="airtableField">' + schemaFields.map(function (sf) {
+          return '<option value="' + DynamicForm.escapeHtml(sf.name) + '"' + (sf.name === field.airtableField ? ' selected' : '') + '>' + DynamicForm.escapeHtml(sf.name) + '</option>';
+        }).join('') + '</select>' +
+        '<select data-prop="inputType">' + typeOptions.map(function (type) {
+          return '<option value="' + type + '"' + (type === field.inputType ? ' selected' : '') + '>' + type + '</option>';
+        }).join('') + '</select>' +
+        '<label class="checkbox-line"><input type="checkbox" data-prop="required" ' + (field.required ? 'checked' : '') + '> חובה</label>' +
+        '<input data-prop="order" type="number" value="' + DynamicForm.escapeHtml(field.order) + '">' +
+        '<select data-prop="appliesTo">' +
+          '<option value="single,bulk"' + (field.appliesTo.length === 2 ? ' selected' : '') + '>בודד + מרובה</option>' +
+          '<option value="single"' + (field.appliesTo.length === 1 && field.appliesTo[0] === 'single' ? ' selected' : '') + '>בודד בלבד</option>' +
+          '<option value="bulk"' + (field.appliesTo.length === 1 && field.appliesTo[0] === 'bulk' ? ' selected' : '') + '>מרובה בלבד</option>' +
+        '</select>' +
+        '<button class="btn-danger" type="button" data-action="remove"' + (field.system ? ' disabled' : '') + '>מחק</button>' +
+        '<textarea data-prop="options" style="grid-column:2 / -1" placeholder="אפשרויות, כל אפשרות בשורה">' + DynamicForm.escapeHtml((field.options || (schema && schema.options) || []).join('\n')) + '</textarea>';
+      list.appendChild(row);
+    });
+  }
+
+  function collectAdminFields() {
+    return [].slice.call(document.querySelectorAll('.admin-field-row')).map(function (row, idx) {
+      var current = formFields[Number(row.dataset.index)] || {};
+      function val(prop) {
+        var el = row.querySelector('[data-prop="' + prop + '"]');
+        if (!el) return '';
+        if (el.type === 'checkbox') return el.checked;
+        return el.value;
+      }
+      var airtableField = val('airtableField');
+      var schema = fieldByName(airtableField);
+      return {
+        key: current.key || airtableField.replace(/\s+/g, '_'),
+        label: val('label'),
+        airtableField: airtableField,
+        inputType: val('inputType'),
+        required: val('required'),
+        visible: val('visible'),
+        order: Number(val('order')) || ((idx + 1) * 10),
+        options: MatzmihimConfig.normalizeOptions(val('options')) || (schema && schema.options) || [],
+        appliesTo: val('appliesTo').split(','),
+        system: current.system,
+        placeholder: current.placeholder || '',
+      };
+    });
+  }
+
+  async function saveConfig() {
+    try {
+      hideStatus('saveStatus');
+      formFields = collectAdminFields();
+      var saved = await MatzmihimApi.saveConfig(formFields);
+      formFields = MatzmihimConfig.normalizeConfig(saved);
+      renderFields();
+      showStatus('saveStatus', 'ההגדרות נשמרו בהצלחה.');
+    } catch (err) {
+      showStatus('saveStatus', 'שגיאה בשמירה: ' + err.message);
+    }
+  }
+
+  document.getElementById('fieldsList').addEventListener('click', function (event) {
+    if (event.target.dataset.action !== 'remove') return;
+    var row = event.target.closest('.admin-field-row');
+    formFields.splice(Number(row.dataset.index), 1);
+    renderFields();
+  });
+
+  document.getElementById('fieldsList').addEventListener('change', function (event) {
+    if (event.target.dataset.prop !== 'airtableField') return;
+    var row = event.target.closest('.admin-field-row');
+    var idx = Number(row.dataset.index);
+    var schema = fieldByName(event.target.value);
+    if (!schema) return;
+    formFields[idx].airtableField = schema.name;
+    formFields[idx].label = schema.name;
+    formFields[idx].inputType = inputTypeForAirtable(schema);
+    formFields[idx].options = schema.options || [];
+    renderFields();
+  });
+</script>
+</body>
+</html>

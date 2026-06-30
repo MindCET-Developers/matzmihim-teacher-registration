@@ -3,870 +3,273 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>מצמיחים — הרשמה מרובה</title>
+  <title>מצמיחים - הרשמה מרובה</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Heebo', sans-serif;
-      background: #f0f4f8;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-      color: #1a2a3a;
-    }
-
-    .page-wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-    }
-
-    .header h1 { font-size: 1.5rem; font-weight: 700; color: #1a3c6b; }
-    .header p  { font-size: 0.9rem; color: #6b7c8d; margin-top: 0.15rem; }
-
-    .back-link {
-      font-size: 0.88rem;
-      color: #1a3c6b;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .back-link:hover { text-decoration: underline; }
-
-    /* Shared settings panel */
-    .panel {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-      padding: 1.4rem 1.6rem;
-      margin-bottom: 1.4rem;
-    }
-
-    .panel-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #1a3c6b;
-      margin-bottom: 1rem;
-      padding-bottom: 0.6rem;
-      border-bottom: 1.5px solid #e8eef5;
-    }
-
-    .shared-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.8rem;
-      align-items: end;
-    }
-
-    .field { display: flex; flex-direction: column; }
-    .field label { font-size: 0.8rem; font-weight: 500; color: #3a4f63; margin-bottom: 0.3rem; }
-
-    .field input,
-    .field select {
-      border: 1.5px solid #d0dae4;
-      border-radius: 7px;
-      padding: 0.55rem 0.8rem;
-      font-size: 0.9rem;
-      font-family: 'Heebo', sans-serif;
-      color: #1a2a3a;
-      background: #f8fafc;
-      transition: border-color 0.2s;
-      appearance: none;
-      -webkit-appearance: none;
-      width: 100%;
-    }
-
-    .field select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7c8d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: left 0.8rem center;
-      padding-left: 2rem;
-    }
-
-    .field input:focus, .field select:focus {
-      outline: none;
-      border-color: #1a3c6b;
-      background: #fff;
-    }
-
-    .field select:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Apply button */
-    .btn-apply {
-      padding: 0.56rem 1.2rem;
-      background: #1a3c6b;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      font-size: 0.88rem;
-      font-family: 'Heebo', sans-serif;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.2s;
-    }
-    .btn-apply:hover { background: #14305a; }
-    .link-btn {
-      background: none; border: none; color: #2563b0;
-      font-size: 0.82rem; cursor: pointer; padding: 0;
-      text-decoration: underline; font-family: inherit;
-    }
-    .link-btn:hover { color: #1a3c6b; }
-
-    /* Table */
-    .table-panel {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-      overflow: hidden;
-      margin-bottom: 1.4rem;
-    }
-
-    .table-scroll { overflow-x: auto; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-    }
-
-    thead th {
-      background: #1a3c6b;
-      color: #fff;
-      padding: 0.65rem 0.7rem;
-      text-align: right;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    thead th:last-child { width: 40px; }
-
-    tbody tr:nth-child(even) { background: #f8fafc; }
-    tbody tr:hover { background: #eef3fb; }
-
-    tbody td {
-      padding: 0.35rem 0.4rem;
-      border-bottom: 1px solid #e8eef5;
-      vertical-align: top;
-    }
-
-    tbody td input, tbody td select {
-      width: 100%;
-      border: 1px solid #d0dae4;
-      border-radius: 5px;
-      padding: 0.42rem 0.6rem;
-      font-size: 0.85rem;
-      font-family: 'Heebo', sans-serif;
-      color: #1a2a3a;
-      background: transparent;
-    }
-    tbody td input:focus, tbody td select:focus {
-      outline: none;
-      border-color: #1a3c6b;
-      background: #fff;
-    }
-    tbody td input.row-error { border-color: #e74c3c; background: #fff5f5; }
-    tbody td select { appearance: none; -webkit-appearance: none; }
-    tbody td select:disabled { opacity: 0.4; }
-
-    .btn-del {
-      background: none;
-      border: none;
-      color: #c0392b;
-      cursor: pointer;
-      font-size: 1.1rem;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      line-height: 1;
-    }
-    .btn-del:hover { background: #fdecea; }
-
-    /* Row status */
-    tr.row-ok   td:first-child { border-right: 3px solid #27ae60; }
-    tr.row-fail td:first-child { border-right: 3px solid #e74c3c; }
-    tr.row-sending td { opacity: 0.6; }
-
-    /* Bottom bar */
-    .bottom-bar {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .btn-add-row {
-      background: none;
-      border: 1.5px dashed #1a3c6b;
-      color: #1a3c6b;
-      border-radius: 7px;
-      padding: 0.5rem 1rem;
-      font-size: 0.88rem;
-      font-family: 'Heebo', sans-serif;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .btn-add-row:hover { background: #eef3fb; }
-
-    .btn-submit-all {
-      padding: 0.65rem 1.8rem;
-      background: #1a3c6b;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      font-size: 0.95rem;
-      font-family: 'Heebo', sans-serif;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s, opacity 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .btn-submit-all:hover:not(:disabled) { background: #14305a; }
-    .btn-submit-all:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .spinner-sm {
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
-    .sending .spinner-sm { display: inline-block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Progress */
-    .progress-wrap {
-      flex: 1;
-      min-width: 200px;
-      display: none;
-    }
-    .progress-wrap.show { display: block; }
-    .progress-label { font-size: 0.82rem; color: #6b7c8d; margin-bottom: 0.3rem; }
-    .progress-bar-bg {
-      height: 8px;
-      background: #e0e7ef;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: #1a3c6b;
-      border-radius: 4px;
-      transition: width 0.3s;
-      width: 0%;
-    }
-
-    /* Summary */
-    .summary {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-      padding: 1.2rem 1.6rem;
-      display: none;
-    }
-    .summary.show { display: block; }
-    .summary h3 { font-size: 1rem; font-weight: 700; color: #1a3c6b; margin-bottom: 0.8rem; }
-    .summary-row { font-size: 0.88rem; margin-bottom: 0.3rem; }
-    .summary-row.ok   { color: #27ae60; }
-    .summary-row.fail { color: #c0392b; }
-
-    /* Paste hint */
-    .paste-hint {
-      font-size: 0.8rem;
-      color: #6b7c8d;
-      text-align: center;
-      padding: 0.5rem;
-      border-top: 1px dashed #d0dae4;
-    }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000;
-      display: none;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: #fff;
-      border-radius: 14px;
-      padding: 1.8rem 2rem;
-      width: 100%; max-width: 560px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
-      direction: rtl;
-    }
-
-    .modal h2 { font-size: 1.1rem; font-weight: 700; color: #1a3c6b; margin-bottom: 0.4rem; }
-    .modal p  { font-size: 0.85rem; color: #6b7c8d; margin-bottom: 1.2rem; }
-
-    .map-grid {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 0.5rem 0.8rem;
-      align-items: center;
-      margin-bottom: 1.4rem;
-    }
-
-    .map-grid .col-label { font-size: 0.82rem; color: #3a4f63; font-weight: 500; }
-    .map-grid .arrow { color: #9aabb8; font-size: 0.9rem; text-align: center; }
-
-    .map-grid select {
-      border: 1.5px solid #d0dae4;
-      border-radius: 7px;
-      padding: 0.45rem 0.7rem;
-      font-size: 0.85rem;
-      font-family: 'Heebo', sans-serif;
-      appearance: none; -webkit-appearance: none;
-    }
-    .map-grid select:focus { outline: none; border-color: #1a3c6b; }
-
-    .modal-preview {
-      background: #f8fafc;
-      border-radius: 7px;
-      padding: 0.6rem 0.8rem;
-      font-size: 0.78rem;
-      color: #6b7c8d;
-      margin-bottom: 1.2rem;
-      max-height: 80px;
-      overflow: hidden;
-    }
-
-    .modal-actions { display: flex; gap: 0.8rem; justify-content: flex-start; }
-
-    .btn-modal-ok {
-      padding: 0.6rem 1.5rem;
-      background: #1a3c6b; color: #fff;
-      border: none; border-radius: 7px;
-      font-family: 'Heebo', sans-serif; font-size: 0.9rem; font-weight: 700;
-      cursor: pointer;
-    }
-    .btn-modal-ok:hover { background: #14305a; }
-
-    .btn-modal-cancel {
-      padding: 0.6rem 1.2rem;
-      background: none; color: #6b7c8d;
-      border: 1.5px solid #d0dae4; border-radius: 7px;
-      font-family: 'Heebo', sans-serif; font-size: 0.9rem;
-      cursor: pointer;
-    }
-    .btn-modal-cancel:hover { background: #f0f4f8; }
-
-    @media (max-width: 700px) {
-      .shared-grid { grid-template-columns: 1fr 1fr; }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/app.css" />
 </head>
 <body>
 <div class="page-wrap">
-
   <div class="header">
-    <div style="display:flex;align-items:center;gap:1rem">
+    <div class="header-brand">
       <img src="https://matzmichim.org.il/wp-content/uploads/2025/06/Artboard-3.png" alt="מצמיחים" style="height:48px;width:auto" />
       <div>
-        <h1>מצמיחים — הרשמה מרובה</h1>
+        <h1>מצמיחים - הרשמה מרובה</h1>
         <p>הוספת מורים מרובים על-ידי מנחה או מנהל</p>
       </div>
     </div>
     <a class="back-link" href="index.html">← חזרה לטופס הרשמה בודדת</a>
   </div>
 
-  <!-- Shared settings -->
   <div class="panel">
     <div class="panel-title">הגדרות משותפות לכל הרשומות</div>
     <div class="shared-grid">
       <div class="field">
-        <label>סוג הרשמה</label>
+        <label for="sharedRegType">סוג הרשמה *</label>
         <select id="sharedRegType">
-          <option value="">— בחר —</option>
+          <option value="">בחר</option>
           <option value="school">סדנא (דרך בית ספר)</option>
           <option value="course">קורס / השתלמות</option>
         </select>
       </div>
       <div class="field" id="sharedSchoolWrap" style="display:none">
-        <label>בית ספר</label>
-        <select id="sharedSchool" disabled>
-          <option value="">טוען...</option>
-        </select>
+        <label for="sharedSchool">בית ספר *</label>
+        <select id="sharedSchool" disabled><option value="">טוען...</option></select>
       </div>
       <div class="field" id="sharedCourseWrap" style="display:none">
-        <label>שם ההשתלמות</label>
-        <select id="sharedCourse" disabled>
-          <option value="">טוען...</option>
-        </select>
+        <label for="sharedCourse">שם ההשתלמות *</label>
+        <select id="sharedCourse" disabled><option value="">טוען...</option></select>
       </div>
     </div>
   </div>
 
-  <!-- Table -->
   <div class="table-panel">
     <div class="table-scroll">
       <table id="bulkTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>שם פרטי *</th>
-            <th>שם משפחה *</th>
-            <th>אימייל *</th>
-            <th>טלפון *</th>
-            <th>כיתה / תפקיד</th>
-            <th></th>
-          </tr>
-        </thead>
+        <thead id="bulkHead"></thead>
         <tbody id="bulkBody"></tbody>
       </table>
     </div>
+    <p class="paste-hint">העתיקו שורות מ-Excel והדביקו לתוך הטבלה. ייפתח חלון מיפוי עמודות.</p>
   </div>
 
-  <!-- Bottom bar -->
   <div class="bottom-bar">
-    <button class="btn-add-row" onclick="addRow()">+ הוסף שורה</button>
-    <button class="btn-submit-all" id="btnSubmitAll" onclick="submitAll()">
+    <button class="btn-add-row" id="btnAddRow" type="button">+ הוסף שורה</button>
+    <button class="btn-submit-all" id="btnSubmitAll" type="button">
       <span class="spinner-sm"></span>
       <span class="submit-text">רשום את כולם</span>
     </button>
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-label" id="progressLabel"></div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progressFill"></div>
-      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
     </div>
   </div>
 
-  <!-- Paste hint -->
-  <p class="paste-hint">💡 העתק שורות מ-Excel והדבק לתוך הטבלה (Ctrl+V) — יופיע חלון מיפוי עמודות</p>
-
-  <!-- Summary -->
-  <div class="summary" id="summary">
-    <h3>סיכום שליחה</h3>
-    <div id="summaryBody"></div>
-  </div>
-
+  <div class="global-error" id="globalError"></div>
+  <div class="summary" id="summary"><h3>סיכום שליחה</h3><div id="summaryBody"></div></div>
 </div>
 
-<!-- Column mapping modal -->
 <div class="modal-overlay" id="mapModal">
   <div class="modal">
     <h2>מיפוי עמודות מ-Excel</h2>
-    <p>התאם כל עמודה מהקובץ שלך לשדה המתאים במערכת</p>
+    <p>התאימו כל עמודה מהקובץ לשדה בטופס.</p>
     <div class="modal-preview" id="mapPreview"></div>
     <div class="map-grid" id="mapGrid"></div>
     <div class="modal-actions">
-      <button class="btn-modal-ok" onclick="applyPasteMapping()">ייבא נתונים</button>
-      <button class="btn-modal-cancel" onclick="closeMapModal()">ביטול</button>
+      <button class="btn" id="btnApplyMapping" type="button">ייבא נתונים</button>
+      <button class="btn-secondary" id="btnCloseMapping" type="button">ביטול</button>
     </div>
   </div>
 </div>
 
 <script src="config.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/form-config.js"></script>
+<script src="assets/dynamic-form.js"></script>
 <script>
-  var SCHOOLS_TABLE_ID = 'tbl11LhBQj6WKU0Dr';
-  var COURSES_TABLE_ID = 'tblorHNyxETz6gRXu';
-  var TEACHERS_TABLE_ID = 'tbl8G483uVRaWUCQZ';
-  var schoolRecords = [];
-  var courseRecords = [];
+  var formFields = [];
   var rowCount = 0;
+  var pastedRows = [];
+  var pastedHeaders = [];
+  var entityCache = { school: [], course: [] };
 
-  // ─── Load data from Airtable ──────────────────────────────
-  async function loadAirtableTable(tableId) {
-    var allRecords = [];
-    var offset = null;
-    do {
-      var url = "https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + tableId;
-      if (offset) url += "?offset=" + offset;
-      var res = await fetch(url, {
-        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
-      });
-      if (!res.ok) throw new Error('Airtable ' + res.status);
-      var data = await res.json();
-      allRecords = allRecords.concat(data.records || []);
-      offset = data.offset || null;
-    } while (offset);
-    return allRecords;
+  function showError(message) {
+    var el = document.getElementById('globalError');
+    el.textContent = message;
+    el.classList.add('show');
   }
 
-  async function loadAllData() {
-    try {
-      var results = await Promise.all([
-        loadAirtableTable(SCHOOLS_TABLE_ID),
-        loadAirtableTable(COURSES_TABLE_ID),
-      ]);
-      schoolRecords = results[0];
-      courseRecords = results[1];
-      populateSchoolDropdown();
-      populateCourseDropdown();
-    } catch (e) {
-      console.error('Failed to load data:', e);
-    }
+  function clearError() {
+    document.getElementById('globalError').classList.remove('show');
   }
 
-  function populateSchoolDropdown() {
-    var el = document.getElementById('sharedSchool');
-    el.innerHTML = '<option value="">— בחר בית ספר —</option>';
-    schoolRecords.forEach(function(r) {
-      var name = (r.fields['בית ספר'] || '').trim();
-      if (!name) return;
-      var remaining = r.fields['נותרו'] || 0;
+  async function loadEntities(type) {
+    if (entityCache[type].length) return entityCache[type];
+    entityCache[type] = await MatzmihimApi.getEntities(type);
+    return entityCache[type];
+  }
+
+  async function populateEntity(type) {
+    var select = document.getElementById(type === 'school' ? 'sharedSchool' : 'sharedCourse');
+    select.disabled = true;
+    select.innerHTML = '<option value="">טוען...</option>';
+    var rows = await loadEntities(type);
+    select.innerHTML = '<option value="">בחר</option>';
+    rows.forEach(function (row) {
       var opt = document.createElement('option');
-      opt.value = r.id;
-      opt.textContent = name + (remaining <= 0 ? ' (אין הרשאות פנויות)' : '');
-      opt.dataset.name = name;
-      opt.dataset.remaining = remaining;
-      opt.disabled = remaining <= 0;
-      el.appendChild(opt);
+      opt.value = row.id;
+      opt.textContent = row.name + (row.remaining <= 0 ? ' (אין הרשאות פנויות)' : '');
+      opt.disabled = row.remaining <= 0;
+      select.appendChild(opt);
     });
-    el.disabled = false;
+    select.disabled = false;
   }
 
-  function populateCourseDropdown() {
-    var el = document.getElementById('sharedCourse');
-    el.innerHTML = '<option value="">— בחר השתלמות —</option>';
-    courseRecords.forEach(function(r) {
-      var name = (r.fields['השתלמות'] || '').trim();
-      if (!name) return;
-      var remaining = r.fields['נותרו'] || 0;
-      var opt = document.createElement('option');
-      opt.value = r.id;
-      opt.textContent = name + (remaining <= 0 ? ' (אין הרשאות פנויות)' : '');
-      opt.dataset.name = name;
-      opt.dataset.remaining = remaining;
-      opt.disabled = remaining <= 0;
-      el.appendChild(opt);
-    });
-    el.disabled = false;
-  }
-
-  // ─── Registration type toggle ─────────────────────────────
-  document.getElementById('sharedRegType').addEventListener('change', function() {
+  document.getElementById('sharedRegType').addEventListener('change', function () {
     var val = this.value;
     document.getElementById('sharedSchoolWrap').style.display = val === 'school' ? '' : 'none';
     document.getElementById('sharedCourseWrap').style.display = val === 'course' ? '' : 'none';
+    if (val) populateEntity(val).catch(function (err) { showError(err.message); });
   });
 
-  // ─── Table rows ───────────────────────────────────────────
+  function renderHeader() {
+    var html = '<tr><th>#</th>';
+    formFields.forEach(function (field) {
+      html += '<th>' + DynamicForm.escapeHtml(field.label) + (field.required ? ' *' : '') + '</th>';
+    });
+    html += '<th></th></tr>';
+    document.getElementById('bulkHead').innerHTML = html;
+  }
+
   function addRow(data) {
     data = data || {};
     rowCount++;
-    var rid = rowCount;
-    var tbody = document.getElementById('bulkBody');
     var tr = document.createElement('tr');
-    tr.dataset.rowId = rid;
-
-    tr.innerHTML =
-      '<td style="text-align:center;color:#9aabb8;font-size:0.8rem;padding-top:0.6rem">' + rid + '</td>' +
-      '<td><input class="row-firstName" type="text" placeholder="שם פרטי" value="' + esc(data.firstName || '') + '" /></td>' +
-      '<td><input class="row-lastName"  type="text" placeholder="שם משפחה" value="' + esc(data.lastName || '') + '" /></td>' +
-      '<td><input class="row-email"     type="email" placeholder="אימייל" value="' + esc(data.email || '') + '" /></td>' +
-      '<td><input class="row-phone"     type="tel"   placeholder="0501234567" value="' + esc(data.phone || '') + '" /></td>' +
-      '<td><input class="row-grade"     type="text"  placeholder="כיתה / תפקיד" value="' + esc(data.grade || '') + '" /></td>' +
-      '<td><button class="btn-del" title="מחק שורה" onclick="this.closest(\'tr\').remove()">✕</button></td>';
-
-    tbody.appendChild(tr);
+    tr.dataset.rowId = rowCount;
+    var html = '<td style="text-align:center;color:#9aabb8;font-size:0.8rem;padding-top:0.6rem">' + rowCount + '</td>';
+    formFields.forEach(function (field) {
+      html += '<td>' + DynamicForm.bulkInputHtml(field, data[field.key] || data[field.airtableField] || '') + '</td>';
+    });
+    html += '<td><button class="btn-danger" type="button" title="מחק שורה">מחק</button></td>';
+    tr.innerHTML = html;
+    tr.querySelector('.btn-danger').addEventListener('click', function () { tr.remove(); });
+    document.getElementById('bulkBody').appendChild(tr);
   }
 
-  function esc(s) { return String(s).replace(/"/g, '&quot;'); }
-
-  // ─── Submit all ───────────────────────────────────────────
-  async function submitAll() {
-    var regType = document.getElementById('sharedRegType').value;
-    if (!regType) { alert('יש לבחור סוג הרשמה (סדנא / קורס)'); return; }
-
-    var licenseTableId, licenseRecordId, entityName;
-    if (regType === 'school') {
-      var schoolEl = document.getElementById('sharedSchool');
-      if (!schoolEl.value) { alert('יש לבחור בית ספר'); return; }
-      var schoolOpt = schoolEl.options[schoolEl.selectedIndex];
-      licenseTableId = SCHOOLS_TABLE_ID;
-      licenseRecordId = schoolEl.value;
-      entityName = schoolOpt.dataset.name;
-    } else {
-      var courseEl = document.getElementById('sharedCourse');
-      if (!courseEl.value) { alert('יש לבחור השתלמות'); return; }
-      var courseOpt = courseEl.options[courseEl.selectedIndex];
-      licenseTableId = COURSES_TABLE_ID;
-      licenseRecordId = courseEl.value;
-      entityName = courseOpt.dataset.name;
-    }
-
-    var rows = [].slice.call(document.querySelectorAll('#bulkBody tr'));
+  function collectRows() {
     var entries = [];
-    var hasError = false;
-
-    rows.forEach(function(tr) {
-      var firstName = tr.querySelector('.row-firstName').value.trim();
-      var lastName  = tr.querySelector('.row-lastName').value.trim();
-      var email     = tr.querySelector('.row-email').value.trim();
-      var phone     = tr.querySelector('.row-phone').value.trim();
-      var grade     = tr.querySelector('.row-grade').value.trim();
-
-      if (!firstName && !lastName && !email && !phone) return;
-
-      var rowOk = true;
-      ['.row-firstName', '.row-email', '.row-phone'].forEach(function(sel) {
-        var el = tr.querySelector(sel);
-        var val = el.value.trim();
-        var valid;
-        if (sel === '.row-email') {
-          valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-        } else if (sel === '.row-phone') {
-          valid = /^0(5[0-9]|7[0-9])\d{7}$/.test(val);
-        } else {
-          valid = val.length > 0;
-        }
-        el.classList.toggle('row-error', !valid);
-        if (!valid) { rowOk = false; hasError = true; }
-      });
-
-      if (rowOk) entries.push({ tr: tr, firstName: firstName, lastName: lastName, email: email, phone: phone, grade: grade });
+    var ok = true;
+    [].slice.call(document.querySelectorAll('#bulkBody tr')).forEach(function (tr) {
+      var result = DynamicForm.collectBulkRow(tr, formFields);
+      if (!result.hasAny) return;
+      if (!result.ok) ok = false;
+      entries.push({ tr: tr, values: result.values, fields: MatzmihimConfig.toPayload(formFields, result.values) });
     });
+    return { ok: ok, entries: entries };
+  }
 
-    if (hasError) { alert('יש שדות חסרים או שגויים — יש לוודא אימייל תקין וטלפון נייד ישראלי (10 ספרות ללא מקפים)'); return; }
-    if (!entries.length) { alert('אין שורות למשלוח'); return; }
+  async function submitAll() {
+    clearError();
+    var regType = document.getElementById('sharedRegType').value;
+    var entityId = regType === 'school' ? document.getElementById('sharedSchool').value : document.getElementById('sharedCourse').value;
+    if (!regType) return showError('יש לבחור סוג הרשמה.');
+    if (!entityId) return showError('יש לבחור בית ספר או השתלמות.');
 
-    // Check remaining licenses
-    try {
-      var licCheckRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + licenseTableId + "/" + licenseRecordId, {
-        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
-      });
-      var licCheckData = await licCheckRes.json();
-      var remaining = licCheckData.fields['נותרו'] || 0;
-      var currentOccupied = licCheckData.fields['אוישו'] || 0;
-      if (remaining < entries.length) {
-        alert('אין מספיק הקצאות. נותרו ' + remaining + ' הקצאות אבל יש ' + entries.length + ' שורות לרישום.');
-        return;
-      }
-    } catch (e) {
-      alert('שגיאה בבדיקת הקצאות: ' + e.message);
-      return;
-    }
+    var collected = collectRows();
+    if (!collected.ok) return showError('יש שדות חסרים או שגויים בטבלה.');
+    if (!collected.entries.length) return showError('אין שורות למשלוח.');
 
     var btn = document.getElementById('btnSubmitAll');
     btn.disabled = true;
     btn.classList.add('sending');
     btn.querySelector('.submit-text').textContent = 'שולח...';
+    document.getElementById('progressWrap').classList.add('show');
+    document.getElementById('progressFill').style.width = '20%';
+    document.getElementById('progressLabel').textContent = 'שולח ' + collected.entries.length + ' רשומות...';
 
-    var progressWrap = document.getElementById('progressWrap');
-    var progressFill = document.getElementById('progressFill');
-    var progressLabel = document.getElementById('progressLabel');
-    progressWrap.classList.add('show');
-
-    var done = 0, succeeded = 0;
-    var failures = [];
-
-    async function sendOne(entry) {
-      var tr = entry.tr;
-      tr.classList.add('row-sending');
-
-      var atFields = {
-        'username':    entry.email,
-        'טלפון':       entry.phone,
-        'שם פרטי':    entry.firstName,
-        'שם משפחה':   entry.lastName,
-        'בית ספר':    entityName,
-      };
-      if (entry.grade) atFields['grade'] = entry.grade;
-      try {
-        // Check duplicate email
-        var formula = encodeURIComponent("{username}='" + entry.email + "'");
-        var checkRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID + "?filterByFormula=" + formula + "&maxRecords=1", {
-          headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN },
-        });
-        var checkData = await checkRes.json();
-        if (checkData.records && checkData.records.length > 0) {
-          throw new Error('אימייל כבר רשום במערכת');
-        }
-
-        var atRes = await fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + TEACHERS_TABLE_ID, {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fields: atFields }),
-        });
-
-        if (!atRes.ok) {
-          var b = await atRes.json().catch(function() { return {}; });
-          throw new Error('Airtable ' + atRes.status + ': ' + (b.error?.message || ''));
-        }
-
-        // Bubble — non-fatal
-        fetch(BUBBLE_URL, {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + BUBBLE_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: entry.email,
-            password: entry.phone,
-            phone: entry.phone,
-            'first name': entry.firstName,
-            'last name': entry.lastName,
-            school: entityName,
-            classroom: entry.grade,
-            role: 'Teacher',
-          }),
-        }).catch(function() {});
-
-        tr.classList.remove('row-sending');
-        tr.classList.add('row-ok');
-        succeeded++;
-      } catch(err) {
-        tr.classList.remove('row-sending');
-        tr.classList.add('row-fail');
-        failures.push({ name: entry.firstName + ' ' + entry.lastName, email: entry.email, error: err.message });
-      }
-
-      done++;
-      var pct = Math.round(done / entries.length * 100);
-      progressFill.style.width = pct + '%';
-      progressLabel.textContent = done + ' / ' + entries.length + ' נשלחו';
-    }
-
-    // Send in batches of 5
-    var BATCH = 5;
-    for (var i = 0; i < entries.length; i += BATCH) {
-      await Promise.allSettled(entries.slice(i, i + BATCH).map(sendOne));
-    }
-
-    // Update אוישו with total succeeded
-    if (succeeded > 0) {
-      fetch("https://api.airtable.com/v0/" + AIRTABLE_BASE + "/" + licenseTableId + "/" + licenseRecordId, {
-        method: 'PATCH',
-        headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: { 'אוישו': currentOccupied + succeeded } }),
-      }).catch(function(e) { console.warn('License update error:', e); });
-    }
-
-    btn.classList.remove('sending');
-    btn.querySelector('.submit-text').textContent = 'רשום את כולם';
-    btn.disabled = false;
-
-    // Show summary
-    var summaryEl = document.getElementById('summary');
-    var summaryBody = document.getElementById('summaryBody');
-    var html = '<div class="summary-row ok">✅ ' + succeeded + ' רשומות נשמרו בהצלחה</div>';
-    if (failures.length) {
-      html += '<div class="summary-row fail">❌ ' + failures.length + ' רשומות נכשלו</div>';
-      failures.forEach(function(f) {
-        html += '<div class="summary-row fail" style="padding-right:1rem;font-size:0.82rem">' + f.name + ' (' + f.email + '): ' + f.error + '</div>';
+    try {
+      var response = await MatzmihimApi.submitBulkRegistrations({
+        regType: regType,
+        entityId: entityId,
+        rows: collected.entries.map(function (entry) { return { fields: entry.fields }; }),
       });
+
+      response.results.forEach(function (result, idx) {
+        var tr = collected.entries[idx].tr;
+        tr.classList.toggle('row-ok', result.ok);
+        tr.classList.toggle('row-fail', !result.ok);
+      });
+
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressLabel').textContent = response.succeeded + ' / ' + collected.entries.length + ' נשמרו';
+      renderSummary(response);
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('sending');
+      btn.querySelector('.submit-text').textContent = 'רשום את כולם';
     }
-    if (succeeded > 0) {
-      html += '<div class="summary-row" style="margin-top:0.8rem">נותרו ' + (remaining - succeeded) + ' הקצאות.</div>';
-    }
-    summaryBody.innerHTML = html;
-    summaryEl.classList.add('show');
-    summaryEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // ─── Init ─────────────────────────────────────────────────
-  loadAllData().then(function() {
-    for (var i = 0; i < 10; i++) addRow();
-  });
+  function renderSummary(response) {
+    var body = '<div class="summary-row ok">' + response.succeeded + ' רשומות נשמרו בהצלחה</div>';
+    if (response.failed) body += '<div class="summary-row fail">' + response.failed + ' רשומות נכשלו</div>';
+    if (Number.isFinite(response.remaining)) body += '<div class="summary-row">נותרו ' + response.remaining + ' הקצאות.</div>';
+    response.results.filter(function (r) { return !r.ok; }).forEach(function (r) {
+      body += '<div class="summary-row fail">' + DynamicForm.escapeHtml(r.email || '') + ': ' + DynamicForm.escapeHtml(r.error || 'שגיאה') + '</div>';
+    });
+    document.getElementById('summaryBody').innerHTML = body;
+    document.getElementById('summary').classList.add('show');
+  }
 
-  // ─── Excel paste ──────────────────────────────────────────
-  var FIELD_OPTIONS = [
-    { value: '',             label: '— דלג —' },
-    { value: 'firstName',   label: 'שם פרטי' },
-    { value: 'lastName',    label: 'שם משפחה' },
-    { value: 'email',       label: 'אימייל' },
-    { value: 'phone',       label: 'טלפון' },
-    { value: 'grade',       label: 'כיתה / תפקיד' },
-  ];
-
-  var HEADER_HINTS = {
-    'שם פרטי': 'firstName', 'first': 'firstName', 'firstname': 'firstName',
-    'שם משפחה': 'lastName', 'last': 'lastName', 'lastname': 'lastName',
-    'אימייל': 'email', 'מייל': 'email', 'email': 'email',
-    'טלפון': 'phone', 'נייד': 'phone', 'phone': 'phone', 'tel': 'phone',
-    'כיתה': 'grade', 'תפקיד': 'grade', 'grade': 'grade', 'class': 'grade',
-  };
-
-  var pastedRows = [];
-  var pastedHeaders = [];
-
-  document.addEventListener('paste', function(e) {
-    var active = document.activeElement;
-    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return;
-
-    var text = e.clipboardData.getData('text/plain');
-    if (!text.trim()) return;
-
-    e.preventDefault();
-    parsePaste(text);
-  });
-
-  document.getElementById('bulkTable').addEventListener('paste', function(e) {
-    var text = e.clipboardData.getData('text/plain');
-    if (!text.trim()) return;
-    e.preventDefault();
-    parsePaste(text);
-  });
+  function headerHints() {
+    var hints = {};
+    formFields.forEach(function (field) {
+      hints[field.label.toLowerCase()] = field.key;
+      hints[field.airtableField.toLowerCase()] = field.key;
+      hints[field.key.toLowerCase()] = field.key;
+    });
+    hints['מייל'] = 'email';
+    hints['נייד'] = 'phone';
+    hints['שם'] = 'firstName';
+    return hints;
+  }
 
   function parsePaste(text) {
-    var lines = text.trim().split(/\r?\n/).filter(function(l) { return l.trim(); });
+    var lines = text.trim().split(/\r?\n/).filter(function (line) { return line.trim(); });
     if (!lines.length) return;
-
-    var allRows = lines.map(function(l) { return l.split('\t'); });
-    var firstRow = allRows[0];
-
-    var looksLikeHeader = firstRow.every(function(cell) { return !cell.includes('@') && !/^\d{9,}$/.test(cell.trim()); });
-
-    if (looksLikeHeader) {
-      pastedHeaders = firstRow.map(function(c) { return c.trim(); });
-      pastedRows = allRows.slice(1);
-    } else {
-      pastedHeaders = firstRow.map(function(_, i) { return 'עמודה ' + (i + 1); });
-      pastedRows = allRows;
-    }
-
-    if (!pastedRows.length) return;
-    openMapModal();
+    var rows = lines.map(function (line) { return line.split('\t'); });
+    var first = rows[0];
+    var looksLikeHeader = first.every(function (cell) { return !cell.includes('@') && !/^\d{9,}$/.test(cell.trim()); });
+    pastedHeaders = looksLikeHeader ? first.map(function (c) { return c.trim(); }) : first.map(function (_, i) { return 'עמודה ' + (i + 1); });
+    pastedRows = looksLikeHeader ? rows.slice(1) : rows;
+    if (pastedRows.length) openMapModal();
   }
 
   function openMapModal() {
-    var previewLines = pastedRows.slice(0, 2).map(function(r) { return r.join(' | '); }).join('\n');
-    document.getElementById('mapPreview').textContent = pastedRows.length + ' שורות • תצוגה מקדימה:\n' + previewLines;
-
+    var hints = headerHints();
+    document.getElementById('mapPreview').textContent = pastedRows.length + ' שורות\n' + pastedRows.slice(0, 3).map(function (r) { return r.join(' | '); }).join('\n');
     var grid = document.getElementById('mapGrid');
     grid.innerHTML = '';
-    pastedHeaders.forEach(function(header, colIdx) {
-      var autoMatch = HEADER_HINTS[header.toLowerCase()] || HEADER_HINTS[header] || '';
-
+    pastedHeaders.forEach(function (header, colIdx) {
       var label = document.createElement('div');
       label.className = 'col-label';
       label.textContent = header;
-
       var arrow = document.createElement('div');
       arrow.className = 'arrow';
       arrow.textContent = '←';
-
-      var sel = document.createElement('select');
-      sel.dataset.colIdx = colIdx;
-      sel.id = 'map-col-' + colIdx;
-      FIELD_OPTIONS.forEach(function(opt) {
-        var o = document.createElement('option');
-        o.value = opt.value;
-        o.textContent = opt.label;
-        if (opt.value === autoMatch) o.selected = true;
-        sel.appendChild(o);
-      });
-
+      var select = document.createElement('select');
+      select.dataset.colIdx = colIdx;
+      select.innerHTML = '<option value="">דלג</option>' + formFields.map(function (field) {
+        var selected = hints[header.toLowerCase()] === field.key ? ' selected' : '';
+        return '<option value="' + DynamicForm.escapeHtml(field.key) + '"' + selected + '>' + DynamicForm.escapeHtml(field.label) + '</option>';
+      }).join('');
       grid.appendChild(label);
       grid.appendChild(arrow);
-      grid.appendChild(sel);
+      grid.appendChild(select);
     });
-
     document.getElementById('mapModal').classList.add('open');
   }
 
@@ -878,31 +281,46 @@
 
   function applyPasteMapping() {
     var mapping = {};
-    pastedHeaders.forEach(function(_, colIdx) {
-      var sel = document.getElementById('map-col-' + colIdx);
-      if (sel && sel.value) mapping[colIdx] = sel.value;
+    [].slice.call(document.querySelectorAll('#mapGrid select')).forEach(function (select) {
+      if (select.value) mapping[select.dataset.colIdx] = select.value;
     });
-
-    var rowsToImport = pastedRows.slice();
-    closeMapModal();
-
-    document.querySelectorAll('#bulkBody tr').forEach(function(tr) {
-      var hasData = ['row-firstName','row-email','row-phone'].some(function(cls) {
-        var el = tr.querySelector('.' + cls);
-        return el && el.value.trim();
-      });
-      if (!hasData) tr.remove();
+    document.querySelectorAll('#bulkBody tr').forEach(function (tr) {
+      if (!DynamicForm.collectBulkRow(tr, formFields).hasAny) tr.remove();
     });
-
-    rowsToImport.forEach(function(cols) {
+    pastedRows.forEach(function (cols) {
       var data = {};
-      Object.keys(mapping).forEach(function(colIdx) {
+      Object.keys(mapping).forEach(function (colIdx) {
         data[mapping[colIdx]] = (cols[colIdx] || '').trim();
       });
-      if (!data.firstName && !data.email) return;
       addRow(data);
     });
+    closeMapModal();
   }
+
+  document.getElementById('btnAddRow').addEventListener('click', function () { addRow(); });
+  document.getElementById('btnSubmitAll').addEventListener('click', submitAll);
+  document.getElementById('btnApplyMapping').addEventListener('click', applyPasteMapping);
+  document.getElementById('btnCloseMapping').addEventListener('click', closeMapModal);
+  document.getElementById('bulkTable').addEventListener('paste', function (event) {
+    var text = event.clipboardData.getData('text/plain');
+    if (!text.trim()) return;
+    event.preventDefault();
+    parsePaste(text);
+  });
+
+  async function init() {
+    try {
+      var config = await MatzmihimApi.getConfig();
+      formFields = MatzmihimConfig.fieldsFor(config, 'bulk');
+    } catch (err) {
+      formFields = MatzmihimConfig.fieldsFor(MatzmihimConfig.DEFAULT_FIELDS, 'bulk');
+      showError('נטענה הרשמה מרובה בברירת מחדל כי לא ניתן היה לטעון קונפיג: ' + err.message);
+    }
+    renderHeader();
+    for (var i = 0; i < 10; i++) addRow();
+  }
+
+  init();
 </script>
 </body>
 </html>
