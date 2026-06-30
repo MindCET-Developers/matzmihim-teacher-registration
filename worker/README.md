@@ -34,6 +34,16 @@ wrangler secret put BUBBLE_TOKEN
 
 `ADMIN_PASSWORD_HASH` can be plain text for temporary testing, or `sha256:<hex>`.
 
+## GitHub Actions deploy
+
+The repository includes `.github/workflows/deploy-worker.yml`.
+
+Add this GitHub repository secret:
+
+- `CLOUDFLARE_API_TOKEN` - a Cloudflare API token with permission to deploy Workers.
+
+Then run **Deploy Cloudflare Worker** manually from GitHub Actions, or merge changes to `master` to deploy worker changes automatically.
+
 ## GitHub Pages config
 
 Set the repository variable `API_BASE_URL` to the deployed Worker URL, for example:
