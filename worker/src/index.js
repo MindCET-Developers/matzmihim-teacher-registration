@@ -14,6 +14,7 @@ export default {
 
     try {
       if (url.pathname === '/admin/login' && request.method === 'POST') return handleLogin(request, env);
+      if (url.pathname === '/airtable/tables' && request.method === 'GET') return requireAdmin(request, env, () => handleTables(env));
       if (url.pathname === '/airtable/schema' && request.method === 'GET') return requireAdmin(request, env, () => handleSchema(env));
       if (url.pathname === '/admin/form-config' && request.method === 'PUT') return requireAdmin(request, env, () => handleSaveConfig(request, env));
       if (url.pathname === '/admin/entities' && request.method === 'GET') return requireAdmin(request, env, () => handleAdminEntities(url, env));
@@ -98,6 +99,17 @@ async function handleEntities(url, env) {
     remaining: Number(firstFieldValue(r.fields, ['נותרו']) || 0),
     occupied: Number(firstFieldValue(r.fields, ['אוישו']) || 0),
   })).filter((r) => r.name), env);
+}
+
+async function handleTables(env) {
+  const tables = await airtableMeta(env, `/meta/bases/${env.AIRTABLE_BASE}/tables`);
+  return json({
+    tables: tables.tables.map((table) => ({
+      id: table.id,
+      name: table.name,
+      fields: table.fields.map((field) => ({ id: field.id, name: field.name, type: field.type })),
+    })),
+  }, env);
 }
 
 async function handleAdminEntities(url, env) {
