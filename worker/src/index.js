@@ -257,7 +257,7 @@ async function resolveLicense(env, regType, entityId) {
 function entityDefinition(env, type) {
   return type === 'school'
     ? { type, tableId: env.SCHOOLS_TABLE_ID, nameFields: ['שם בית הספר', 'בית ספר', 'שם ביה"ס', 'שם בית ספר'], writeNameField: 'שם בית הספר' }
-    : { type, tableId: env.COURSES_TABLE_ID, nameFields: ['השתלמות', 'שם ההשתלמות', 'שם השתלמות'], writeNameField: 'השתלמות' };
+    : { type, tableId: env.COURSES_TABLE_ID, nameFields: ['בי״ס מרכז פסג״ה', 'ביס מרכז פסגה', 'השתלמות', 'שם ההשתלמות', 'שם השתלמות'], writeNameField: 'בי״ס מרכז פסג״ה' };
 }
 
 function firstFieldValue(fields, candidates) {
