@@ -45,5 +45,11 @@
     saveConfig: function (fields) {
       return request('/admin/form-config', { method: 'PUT', body: JSON.stringify({ fields: fields }) });
     },
+    getAdminEntities: function () {
+      return request('/admin/entities', { method: 'GET', headers: {} });
+    },
+    createAdminEntity: function (payload) {
+      return request('/admin/entities', { method: 'POST', body: JSON.stringify(payload) });
+    },
   };
 })();

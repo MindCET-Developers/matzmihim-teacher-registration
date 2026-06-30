@@ -504,6 +504,27 @@ tbody td select {
   overflow-x: auto;
 }
 
+.admin-content-panel {
+  grid-column: 2;
+}
+
+.entity-form {
+  align-items: end;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: 150px minmax(240px, 1fr) 150px auto;
+  margin-bottom: 1rem;
+}
+
+.entity-form .field {
+  margin-bottom: 0;
+}
+
+.entity-table th,
+.entity-table td {
+  padding: 0.65rem 0.7rem;
+}
+
 .admin-grid.header-row {
   color: var(--muted);
   font-size: 0.78rem;
@@ -540,8 +561,10 @@ tbody td select {
 
 @media (max-width: 900px) {
   .admin-layout { grid-template-columns: 1fr; }
+  .admin-content-panel { grid-column: auto; }
   .admin-grid { grid-template-columns: 1fr 1fr; }
   .admin-grid.header-row { display: none; }
+  .entity-form { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 700px) {

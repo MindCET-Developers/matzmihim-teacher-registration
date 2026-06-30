@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/app.css?v=admin-wide-20260630" />
+  <link rel="stylesheet" href="assets/app.css?v=admin-entities-20260630" />
 </head>
 <body class="admin-page">
 <div class="page-wrap">
@@ -56,6 +56,45 @@
       <div id="fieldsList"></div>
       <div class="status-box" id="saveStatus"></div>
     </main>
+
+    <section class="panel admin-content-panel" id="entitiesPanel" style="display:none">
+      <div class="panel-title">בתי ספר והשתלמויות</div>
+      <div class="entity-form">
+        <div class="field">
+          <label for="entityType">סוג</label>
+          <select id="entityType">
+            <option value="school">בית ספר</option>
+            <option value="course">השתלמות</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="entityName">שם</label>
+          <input id="entityName" type="text" placeholder="שם בית ספר או השתלמות" />
+        </div>
+        <div class="field">
+          <label for="entityLicenses">מספר הקצאות</label>
+          <input id="entityLicenses" type="number" min="1" step="1" value="1" />
+        </div>
+        <button class="btn" type="button" id="btnAddEntity">הוסף</button>
+      </div>
+      <div class="status-box" id="entityStatus"></div>
+      <div class="table-scroll">
+        <table class="entity-table">
+          <thead>
+            <tr>
+              <th>סוג</th>
+              <th>שם</th>
+              <th>הקצאות</th>
+              <th>אוישו</th>
+              <th>נותרו</th>
+            </tr>
+          </thead>
+          <tbody id="entitiesBody">
+            <tr><td colspan="5">טוען...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -98,7 +137,9 @@
       loggedIn = true;
       showStatus('loginStatus', 'התחברת בהצלחה.');
       document.getElementById('adminPanel').style.display = '';
+      document.getElementById('entitiesPanel').style.display = '';
       await loadAdminData();
+      await loadEntities();
     } catch (err) {
       showGlobal(err.message);
     }
@@ -107,6 +148,7 @@
   document.getElementById('btnReload').addEventListener('click', loadAdminData);
   document.getElementById('btnAddMissing').addEventListener('click', addMissingSchemaFields);
   document.getElementById('btnSave').addEventListener('click', saveConfig);
+  document.getElementById('btnAddEntity').addEventListener('click', addEntity);
 
   async function loadAdminData() {
     if (!loggedIn) return;
@@ -221,6 +263,52 @@
       showStatus('saveStatus', 'ההגדרות נשמרו בהצלחה.');
     } catch (err) {
       showStatus('saveStatus', 'שגיאה בשמירה: ' + err.message);
+    }
+  }
+
+  async function loadEntities() {
+    try {
+      hideStatus('entityStatus');
+      var rows = await MatzmihimApi.getAdminEntities();
+      renderEntities(rows);
+    } catch (err) {
+      showStatus('entityStatus', 'שגיאה בטעינת בתי ספר/השתלמויות: ' + err.message);
+    }
+  }
+
+  function renderEntities(rows) {
+    var body = document.getElementById('entitiesBody');
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="5">אין עדיין בתי ספר או השתלמויות.</td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(function (row) {
+      return '<tr>' +
+        '<td>' + (row.type === 'school' ? 'בית ספר' : 'השתלמות') + '</td>' +
+        '<td>' + DynamicForm.escapeHtml(row.name) + '</td>' +
+        '<td>' + DynamicForm.escapeHtml(row.licenses) + '</td>' +
+        '<td>' + DynamicForm.escapeHtml(row.occupied) + '</td>' +
+        '<td>' + DynamicForm.escapeHtml(row.remaining) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  async function addEntity() {
+    var type = document.getElementById('entityType').value;
+    var name = document.getElementById('entityName').value.trim();
+    var licenses = Number(document.getElementById('entityLicenses').value);
+    if (name.length < 2) return showStatus('entityStatus', 'יש להזין שם.');
+    if (!Number.isInteger(licenses) || licenses <= 0) return showStatus('entityStatus', 'יש להזין מספר הקצאות חיובי.');
+
+    try {
+      hideStatus('entityStatus');
+      await MatzmihimApi.createAdminEntity({ type: type, name: name, licenses: licenses });
+      document.getElementById('entityName').value = '';
+      document.getElementById('entityLicenses').value = '1';
+      showStatus('entityStatus', 'נוסף בהצלחה.');
+      await loadEntities();
+    } catch (err) {
+      showStatus('entityStatus', 'שגיאה בהוספה: ' + err.message);
     }
   }
 

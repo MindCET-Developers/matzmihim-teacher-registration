@@ -16,6 +16,8 @@ export default {
       if (url.pathname === '/admin/login' && request.method === 'POST') return handleLogin(request, env);
       if (url.pathname === '/airtable/schema' && request.method === 'GET') return requireAdmin(request, env, () => handleSchema(env));
       if (url.pathname === '/admin/form-config' && request.method === 'PUT') return requireAdmin(request, env, () => handleSaveConfig(request, env));
+      if (url.pathname === '/admin/entities' && request.method === 'GET') return requireAdmin(request, env, () => handleAdminEntities(url, env));
+      if (url.pathname === '/admin/entities' && request.method === 'POST') return requireAdmin(request, env, () => handleCreateEntity(request, env));
       if (url.pathname === '/form-config' && request.method === 'GET') return json(await readFormConfig(env), env);
       if (url.pathname === '/entities' && request.method === 'GET') return handleEntities(url, env);
       if (url.pathname === '/registrations' && request.method === 'POST') return handleRegistration(request, env);
@@ -88,15 +90,63 @@ async function handleSaveConfig(request, env) {
 async function handleEntities(url, env) {
   const type = url.searchParams.get('type');
   if (type !== 'school' && type !== 'course') return json({ error: 'type must be school or course' }, env, 400);
-  const tableId = type === 'school' ? env.SCHOOLS_TABLE_ID : env.COURSES_TABLE_ID;
-  const nameField = type === 'school' ? 'בית ספר' : 'השתלמות';
-  const records = await fetchAllRecords(env, tableId);
+  const entity = entityDefinition(env, type);
+  const records = await fetchAllRecords(env, entity.tableId);
   return json(records.map((r) => ({
     id: r.id,
-    name: String(r.fields[nameField] || '').trim(),
+    name: String(r.fields[entity.nameField] || '').trim(),
     remaining: Number(r.fields['נותרו'] || 0),
     occupied: Number(r.fields['אוישו'] || 0),
   })).filter((r) => r.name), env);
+}
+
+async function handleAdminEntities(url, env) {
+  const type = url.searchParams.get('type');
+  const types = type === 'school' || type === 'course' ? [type] : ['school', 'course'];
+  const rows = [];
+  for (const currentType of types) {
+    const entity = entityDefinition(env, currentType);
+    const records = await fetchAllRecords(env, entity.tableId);
+    rows.push(...records.map((record) => ({
+      id: record.id,
+      type: currentType,
+      name: String(record.fields[entity.nameField] || '').trim(),
+      licenses: Number(record.fields["מס' הקצאות"] || 0),
+      occupied: Number(record.fields['אוישו'] || 0),
+      remaining: Number(record.fields['נותרו'] || 0),
+    })).filter((row) => row.name));
+  }
+  rows.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name, 'he'));
+  return json(rows, env);
+}
+
+async function handleCreateEntity(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const type = body.type;
+  const name = String(body.name || '').trim();
+  const licenses = Number(body.licenses);
+  if (type !== 'school' && type !== 'course') throw httpError(400, 'Entity type must be school or course');
+  if (name.length < 2) throw httpError(400, 'Name is required');
+  if (!Number.isInteger(licenses) || licenses <= 0) throw httpError(400, 'Licenses must be a positive integer');
+
+  const entity = entityDefinition(env, type);
+  const fields = {
+    [entity.nameField]: name,
+    "מס' הקצאות": licenses,
+    'אוישו': 0,
+  };
+  const created = await airtable(env, `/${entity.tableId}`, {
+    method: 'POST',
+    body: { fields },
+  });
+  return json({
+    id: created.id,
+    type,
+    name,
+    licenses,
+    occupied: 0,
+    remaining: licenses,
+  }, env, 201);
 }
 
 async function handleRegistration(request, env) {
@@ -201,9 +251,13 @@ function fieldsArrayToObject(fields) {
 async function resolveLicense(env, regType, entityId) {
   if (regType !== 'school' && regType !== 'course') throw httpError(400, 'Registration type is required');
   if (!entityId) throw httpError(400, 'Entity is required');
-  return regType === 'school'
-    ? { tableId: env.SCHOOLS_TABLE_ID, recordId: entityId, nameField: 'בית ספר' }
-    : { tableId: env.COURSES_TABLE_ID, recordId: entityId, nameField: 'השתלמות' };
+  return { ...entityDefinition(env, regType), recordId: entityId };
+}
+
+function entityDefinition(env, type) {
+  return type === 'school'
+    ? { type, tableId: env.SCHOOLS_TABLE_ID, nameField: 'בית ספר' }
+    : { type, tableId: env.COURSES_TABLE_ID, nameField: 'השתלמות' };
 }
 
 async function sendBubble(env, fields, entityName, airtableId) {
