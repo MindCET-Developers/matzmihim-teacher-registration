@@ -50,6 +50,10 @@ body.centered {
   margin: 0 auto;
 }
 
+.admin-page .page-wrap {
+  max-width: 1360px;
+}
+
 .logo-area {
   text-align: center;
   margin-bottom: 2rem;
@@ -485,14 +489,19 @@ tbody td select {
 .admin-layout {
   display: grid;
   gap: 1.4rem;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 260px minmax(0, 1fr);
 }
 
 .admin-grid {
   display: grid;
   gap: 0.7rem;
-  grid-template-columns: 70px 1fr 1fr 130px 90px 90px 150px 60px;
+  grid-template-columns: 76px minmax(190px, 1.25fr) minmax(240px, 1.55fr) 150px 92px 100px 170px 70px;
   align-items: center;
+  min-width: 1120px;
+}
+
+.admin-page main.panel {
+  overflow-x: auto;
 }
 
 .admin-grid.header-row {
