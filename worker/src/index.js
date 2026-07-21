@@ -282,13 +282,13 @@ function entityDefinition(env, type) {
     : {
         type,
         tableId: encodeURIComponent('הקצאות להשתלמויות'),
-        nameFields: ['בי"ס/ מרכז פסג"ה', 'בי״ס מרכז פסג״ה', 'ביס מרכז פסגה', 'השתלמות', 'שם ההשתלמות', 'שם השתלמות'],
-        writeNameField: 'בי"ס/ מרכז פסג"ה',
-        licensesFields: ["מס' הקצאות", 'מספר הקצאות'],
-        writeLicensesField: "מס' הקצאות",
-        occupiedFields: ['אוישו'],
-        writeOccupiedField: 'אוישו',
-        remainingFields: ['נותרו'],
+        nameFields: ['Institute name', 'בי"ס/ מרכז פסג"ה', 'בי״ס מרכז פסג״ה', 'ביס מרכז פסגה', 'השתלמות', 'שם ההשתלמות', 'שם השתלמות'],
+        writeNameField: 'Institute name',
+        licensesFields: ['Number of tokens', "מס' הקצאות", 'מספר הקצאות'],
+        writeLicensesField: 'Number of tokens',
+        occupiedFields: ['Used tokens', 'אוישו'],
+        writeOccupiedField: 'Used tokens',
+        remainingFields: ['Remaining tokens', 'נותרו'],
       };
 }
 
