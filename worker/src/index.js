@@ -13,16 +13,16 @@ export default {
     if (request.method === 'OPTIONS') return corsResponse(null, env, 204);
 
     try {
-      if (url.pathname === '/admin/login' && request.method === 'POST') return handleLogin(request, env);
-      if (url.pathname === '/airtable/tables' && request.method === 'GET') return requireAdmin(request, env, () => handleTables(env));
-      if (url.pathname === '/airtable/schema' && request.method === 'GET') return requireAdmin(request, env, () => handleSchema(env));
-      if (url.pathname === '/admin/form-config' && request.method === 'PUT') return requireAdmin(request, env, () => handleSaveConfig(request, env));
-      if (url.pathname === '/admin/entities' && request.method === 'GET') return requireAdmin(request, env, () => handleAdminEntities(url, env));
-      if (url.pathname === '/admin/entities' && request.method === 'POST') return requireAdmin(request, env, () => handleCreateEntity(request, env));
+      if (url.pathname === '/admin/login' && request.method === 'POST') return await handleLogin(request, env);
+      if (url.pathname === '/airtable/tables' && request.method === 'GET') return await requireAdmin(request, env, () => handleTables(env));
+      if (url.pathname === '/airtable/schema' && request.method === 'GET') return await requireAdmin(request, env, () => handleSchema(env));
+      if (url.pathname === '/admin/form-config' && request.method === 'PUT') return await requireAdmin(request, env, () => handleSaveConfig(request, env));
+      if (url.pathname === '/admin/entities' && request.method === 'GET') return await requireAdmin(request, env, () => handleAdminEntities(url, env));
+      if (url.pathname === '/admin/entities' && request.method === 'POST') return await requireAdmin(request, env, () => handleCreateEntity(request, env));
       if (url.pathname === '/form-config' && request.method === 'GET') return json(await readFormConfig(env), env);
-      if (url.pathname === '/entities' && request.method === 'GET') return handleEntities(url, env);
-      if (url.pathname === '/registrations' && request.method === 'POST') return handleRegistration(request, env);
-      if (url.pathname === '/bulk-registrations' && request.method === 'POST') return handleBulkRegistration(request, env);
+      if (url.pathname === '/entities' && request.method === 'GET') return await handleEntities(url, env);
+      if (url.pathname === '/registrations' && request.method === 'POST') return await handleRegistration(request, env);
+      if (url.pathname === '/bulk-registrations' && request.method === 'POST') return await handleBulkRegistration(request, env);
       return json({ error: 'Not found' }, env, 404);
     } catch (err) {
       console.error(err);
@@ -281,7 +281,7 @@ function entityDefinition(env, type) {
       }
     : {
         type,
-        tableId: encodeURIComponent('הקצאות להשתלמויות'),
+        tableId: env.COURSES_TABLE_ID || encodeURIComponent('הקצאות להשתלמויות'),
         nameFields: ['Institute name', 'בי"ס/ מרכז פסג"ה', 'בי״ס מרכז פסג״ה', 'ביס מרכז פסגה', 'השתלמות', 'שם ההשתלמות', 'שם השתלמות'],
         writeNameField: 'Institute name',
         licensesFields: ['Number of tokens', "מס' הקצאות", 'מספר הקצאות'],
