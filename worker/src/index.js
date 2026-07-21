@@ -96,8 +96,8 @@ async function handleEntities(url, env) {
   return json(records.map((r) => ({
     id: r.id,
     name: String(firstFieldValue(r.fields, entity.nameFields) || '').trim(),
-    remaining: Number(firstFieldValue(r.fields, ['נותרו']) || 0),
-    occupied: Number(firstFieldValue(r.fields, ['אוישו']) || 0),
+    remaining: Number(firstFieldValue(r.fields, entity.remainingFields) || 0),
+    occupied: Number(firstFieldValue(r.fields, entity.occupiedFields) || 0),
   })).filter((r) => r.name), env);
 }
 
@@ -123,9 +123,9 @@ async function handleAdminEntities(url, env) {
       id: record.id,
       type: currentType,
       name: String(firstFieldValue(record.fields, entity.nameFields) || '').trim(),
-      licenses: Number(firstFieldValue(record.fields, ["מס' הקצאות", 'מספר הקצאות']) || 0),
-      occupied: Number(firstFieldValue(record.fields, ['אוישו']) || 0),
-      remaining: Number(firstFieldValue(record.fields, ['נותרו']) || 0),
+      licenses: Number(firstFieldValue(record.fields, entity.licensesFields) || 0),
+      occupied: Number(firstFieldValue(record.fields, entity.occupiedFields) || 0),
+      remaining: Number(firstFieldValue(record.fields, entity.remainingFields) || 0),
     })).filter((row) => row.name));
   }
   rows.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name, 'he'));
@@ -144,8 +144,8 @@ async function handleCreateEntity(request, env) {
   const entity = entityDefinition(env, type);
   const fields = {
     [entity.writeNameField]: name,
-    "מס' הקצאות": licenses,
-    'אוישו': 0,
+    [entity.writeLicensesField]: licenses,
+    [entity.writeOccupiedField]: 0,
   };
   const created = await airtable(env, `/${entity.tableId}`, {
     method: 'POST',
@@ -176,8 +176,8 @@ async function handleBulkRegistration(request, env) {
   const config = await readFormConfig(env);
   const license = await resolveLicense(env, body.regType, body.entityId);
   const licRecord = await airtable(env, `/${license.tableId}/${license.recordId}`);
-  const remaining = Number(licRecord.fields['נותרו'] || 0);
-  const occupied = Number(licRecord.fields['אוישו'] || 0);
+  const remaining = Number(firstFieldValue(licRecord.fields, license.remainingFields) || 0);
+  const occupied = Number(firstFieldValue(licRecord.fields, license.occupiedFields) || 0);
   if (remaining < rows.length) {
     return json({ error: `אין מספיק הקצאות. נותרו ${remaining} הקצאות.` }, env, 400);
   }
@@ -199,7 +199,7 @@ async function handleBulkRegistration(request, env) {
   if (succeeded > 0) {
     await airtable(env, `/${license.tableId}/${license.recordId}`, {
       method: 'PATCH',
-      body: { fields: { 'אוישו': occupied + succeeded } },
+      body: { fields: { [license.writeOccupiedField]: occupied + succeeded } },
     });
   }
 
@@ -217,8 +217,8 @@ async function createRegistration(env, body, config, formType) {
 
   const license = await resolveLicense(env, body.regType, body.entityId);
   const licRecord = await airtable(env, `/${license.tableId}/${license.recordId}`);
-  const remaining = Number(licRecord.fields['נותרו'] || 0);
-  const occupied = Number(licRecord.fields['אוישו'] || 0);
+  const remaining = Number(firstFieldValue(licRecord.fields, license.remainingFields) || 0);
+  const occupied = Number(firstFieldValue(licRecord.fields, license.occupiedFields) || 0);
   if (!body.skipLicenseCheck && remaining <= 0) throw httpError(400, 'מספר ההקצאות נגמר.');
 
   const entityName = String(firstFieldValue(licRecord.fields, license.nameFields) || '').trim();
@@ -238,7 +238,7 @@ async function createRegistration(env, body, config, formType) {
   if (!body.skipLicenseUpdate) {
     await airtable(env, `/${license.tableId}/${license.recordId}`, {
       method: 'PATCH',
-      body: { fields: { 'אוישו': occupied + 1 } },
+      body: { fields: { [license.writeOccupiedField]: occupied + 1 } },
     });
   }
 
@@ -268,8 +268,28 @@ async function resolveLicense(env, regType, entityId) {
 
 function entityDefinition(env, type) {
   return type === 'school'
-    ? { type, tableId: env.SCHOOLS_TABLE_ID, nameFields: ['שם בית הספר', 'בית ספר', 'שם ביה"ס', 'שם בית ספר'], writeNameField: 'שם בית הספר' }
-    : { type, tableId: encodeURIComponent('הקצאות להשתלמויות'), nameFields: ['בי"ס/ מרכז פסג"ה', 'בי״ס מרכז פסג״ה', 'ביס מרכז פסגה', 'השתלמות', 'שם ההשתלמות', 'שם השתלמות'], writeNameField: 'בי"ס/ מרכז פסג"ה' };
+    ? {
+        type,
+        tableId: env.SCHOOLS_TABLE_ID,
+        nameFields: ['school name', 'School name', 'שם בית הספר', 'בית ספר', 'שם ביה"ס', 'שם בית ספר'],
+        writeNameField: 'school name',
+        licensesFields: ['Number of tokens', "מס' הקצאות", 'מספר הקצאות'],
+        writeLicensesField: 'Number of tokens',
+        occupiedFields: ['Used tokens', 'אוישו'],
+        writeOccupiedField: 'Used tokens',
+        remainingFields: ['Remaining tokens', 'נותרו'],
+      }
+    : {
+        type,
+        tableId: encodeURIComponent('הקצאות להשתלמויות'),
+        nameFields: ['בי"ס/ מרכז פסג"ה', 'בי״ס מרכז פסג״ה', 'ביס מרכז פסגה', 'השתלמות', 'שם ההשתלמות', 'שם השתלמות'],
+        writeNameField: 'בי"ס/ מרכז פסג"ה',
+        licensesFields: ["מס' הקצאות", 'מספר הקצאות'],
+        writeLicensesField: "מס' הקצאות",
+        occupiedFields: ['אוישו'],
+        writeOccupiedField: 'אוישו',
+        remainingFields: ['נותרו'],
+      };
 }
 
 function firstFieldValue(fields, candidates) {
