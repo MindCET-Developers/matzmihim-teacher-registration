@@ -9,6 +9,8 @@ const DEFAULT_CONFIG = [
 // The teachers table was renamed to English field names. Requests may still
 // arrive keyed by the legacy Hebrew names from a cached frontend bundle or a
 // form config record that predates the rename, so translate on the way in.
+// normalizeConfig translates too, so /config never hands the admin UI a field
+// name that is missing from the current schema.
 const FIELD_ALIASES = {
   'שם פרטי': 'first name',
   'שם משפחה': 'last name',
@@ -445,7 +447,7 @@ function normalizeConfig(fields) {
     byKey.set(key, {
       key,
       label: String(field.label || field.airtableField || key),
-      airtableField: String(field.airtableField || field.label || key),
+      airtableField: resolveField(field.airtableField || field.label || key),
       inputType: ['text', 'email', 'tel', 'number', 'date', 'textarea', 'select', 'grade'].includes(field.inputType) ? field.inputType : 'text',
       required: Boolean(field.required),
       visible: field.visible !== false,

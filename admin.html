@@ -207,7 +207,12 @@
       row.innerHTML =
         '<label class="checkbox-line"><input type="checkbox" data-prop="visible" ' + (field.visible ? 'checked' : '') + '> כן</label>' +
         '<input data-prop="label" value="' + DynamicForm.escapeHtml(field.label) + '">' +
-        '<select data-prop="airtableField">' + schemaFields.map(function (sf) {
+        '<select data-prop="airtableField"' + (schema ? '' : ' style="border-color:var(--danger)"') + '>' +
+        // Without an explicit placeholder the browser falls back to the first
+        // option, so a field whose Airtable target no longer exists would look
+        // mapped to an unrelated column and get saved that way.
+        (schema ? '' : '<option value="" selected disabled>' + DynamicForm.escapeHtml(field.airtableField) + ' — לא קיים ב-Airtable</option>') +
+        schemaFields.map(function (sf) {
           return '<option value="' + DynamicForm.escapeHtml(sf.name) + '"' + (sf.name === field.airtableField ? ' selected' : '') + '>' + DynamicForm.escapeHtml(sf.name) + '</option>';
         }).join('') + '</select>' +
         '<select data-prop="inputType">' + typeOptions.map(function (type) {
@@ -253,9 +258,24 @@
     });
   }
 
+  function unmappedLabels() {
+    return [].slice.call(document.querySelectorAll('.admin-field-row')).filter(function (row) {
+      var select = row.querySelector('[data-prop="airtableField"]');
+      return !select || !select.value;
+    }).map(function (row) {
+      var label = row.querySelector('[data-prop="label"]');
+      return (label && label.value) || '(ללא תווית)';
+    });
+  }
+
   async function saveConfig() {
     try {
       hideStatus('saveStatus');
+      var unmapped = unmappedLabels();
+      if (unmapped.length) {
+        showStatus('saveStatus', 'לא ניתן לשמור: יש לבחור שדה Airtable עבור ' + unmapped.join(', ') + '.');
+        return;
+      }
       formFields = collectAdminFields();
       var saved = await MatzmihimApi.saveConfig(formFields);
       formFields = MatzmihimConfig.normalizeConfig(saved);
@@ -325,8 +345,13 @@
     var idx = Number(row.dataset.index);
     var schema = fieldByName(event.target.value);
     if (!schema) return;
+    var labelInput = row.querySelector('[data-prop="label"]');
+    var currentLabel = labelInput ? labelInput.value.trim() : '';
     formFields[idx].airtableField = schema.name;
-    formFields[idx].label = schema.name;
+    // Labels are hand-written Hebrew shown to teachers, so remapping a field
+    // must never replace one with the Airtable column name. The fallback only
+    // covers a row that has no label at all.
+    formFields[idx].label = currentLabel || formFields[idx].label || schema.name;
     formFields[idx].inputType = inputTypeForAirtable(schema);
     formFields[idx].options = schema.options || [];
     renderFields();
