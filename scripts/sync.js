@@ -28,6 +28,17 @@ if (!AIRTABLE_TOKEN || !AIRTABLE_BASE || !BUBBLE_URL || !BUBBLE_TOKEN) {
 // Strip trailing slash from Bubble URL
 const BUBBLE_BASE = BUBBLE_URL.replace(/\/$/, '');
 
+// The teachers table was renamed to English field names. Read through the
+// current name first and fall back to the legacy Hebrew one, so a partially
+// renamed base still syncs.
+function pick(fields, ...names) {
+  for (const name of names) {
+    const value = fields[name];
+    if (value !== undefined && value !== null && String(value).trim() !== '') return String(value).trim();
+  }
+  return '';
+}
+
 // ── Airtable ──────────────────────────────────────────────────────────────────
 
 async function fetchAllAirtable() {
@@ -97,16 +108,14 @@ async function fetchAllBubble() {
 
 async function createBubbleUser(atRecord) {
   const f = atRecord.fields;
+  const common = commonBubbleFields(f);
+  if (!common.phone) {
+    throw new Error(`No phone for ${pick(f, 'username')} — phone is the Bubble password, refusing to create a passwordless user`);
+  }
   const body = {
-    email:               (f['username'] || '').toLowerCase().trim(),
-    password:            (f['טלפון']    || '').trim(),
-    phone:               (f['טלפון']    || '').trim(),
-    'first name':        (f['שם פרטי']  || '').trim(),
-    'last name':         (f['שם משפחה'] || '').trim(),
-    school:              `${(f['בית ספר'] || '').trim()}, ${(f['יישוב בית ספר'] || '').trim()}`.replace(/^, |, $/g, ''),
-    classroom:           (f['grade']    || '').trim(),
-    expiration:          (f['final expiration'] || '').trim(),
-    role:                'Teacher',
+    email:               pick(f, 'username').toLowerCase(),
+    password:            common.phone,
+    ...common,
     airtable_record_id:  atRecord.id,
   };
 
@@ -145,18 +154,25 @@ async function updateBubbleUser(bubbleId, changedFields) {
 
 // ── Diff ──────────────────────────────────────────────────────────────────────
 
-function diffFields(atRecord, bubbleUser) {
-  const f = atRecord.fields;
-  const mapping = {
-    'first name': (f['שם פרטי']  || '').trim(),
-    'last name':  (f['שם משפחה'] || '').trim(),
-    phone:        (f['טלפון']    || '').trim(),
-    school:       (f['בית ספר']  || '').trim(),
-    role:                'Teacher',
-    classroom:    (f['grade']    || '').trim(),
-    expiration:   (f['final expiration'] || '').trim(),
-    // email is a protected field in Bubble — cannot be updated via Data API
+// Shared by create and diff so the two paths can never compose a field
+// differently — `school` used to include the city on create but not on diff,
+// which made every sync run report the same user as changed.
+// email is a protected field in Bubble — it cannot be updated via the Data API,
+// and password is only ever set at creation time.
+function commonBubbleFields(f) {
+  return {
+    'first name': pick(f, 'first name', 'שם פרטי'),
+    'last name':  pick(f, 'last name', 'שם משפחה'),
+    phone:        pick(f, 'phone number', 'טלפון'),
+    school:       [pick(f, 'school name', 'בית ספר'), pick(f, 'city', 'יישוב בית ספר')].filter(Boolean).join(', '),
+    role:         'Teacher',
+    classroom:    pick(f, 'grade'),
+    expiration:   pick(f, 'final expiration'),
   };
+}
+
+function diffFields(atRecord, bubbleUser) {
+  const mapping = commonBubbleFields(atRecord.fields);
 
   const changed = {};
   for (const [bubbleField, atValue] of Object.entries(mapping)) {
