@@ -1,9 +1,9 @@
 (function () {
   var DEFAULT_FIELDS = [
-    { key: 'firstName', label: 'שם פרטי', airtableField: 'שם פרטי', inputType: 'text', required: true, visible: true, order: 10, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראל' },
-    { key: 'lastName', label: 'שם משפחה', airtableField: 'שם משפחה', inputType: 'text', required: true, visible: true, order: 20, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראלי' },
+    { key: 'firstName', label: 'שם פרטי', airtableField: 'first name', inputType: 'text', required: true, visible: true, order: 10, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראל' },
+    { key: 'lastName', label: 'שם משפחה', airtableField: 'last name', inputType: 'text', required: true, visible: true, order: 20, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראלי' },
     { key: 'email', label: 'אימייל', airtableField: 'username', inputType: 'email', required: true, visible: true, order: 30, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'name@school.edu' },
-    { key: 'phone', label: 'טלפון', airtableField: 'טלפון', inputType: 'tel', required: true, visible: true, order: 40, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: '0501234567' },
+    { key: 'phone', label: 'טלפון', airtableField: 'phone number', inputType: 'tel', required: true, visible: true, order: 40, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: '0501234567' },
     { key: 'grade', label: 'כיתה / תפקיד', airtableField: 'grade', inputType: 'grade', required: true, visible: true, order: 80, options: ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ז׳','ח׳','ט׳','י׳','י״א','י״ב','אחר'], appliesTo: ['single', 'bulk'], system: true },
   ];
 

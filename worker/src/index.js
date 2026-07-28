@@ -1,10 +1,27 @@
 const DEFAULT_CONFIG = [
-  { key: 'firstName', label: 'שם פרטי', airtableField: 'שם פרטי', inputType: 'text', required: true, visible: true, order: 10, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראל' },
-  { key: 'lastName', label: 'שם משפחה', airtableField: 'שם משפחה', inputType: 'text', required: true, visible: true, order: 20, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראלי' },
+  { key: 'firstName', label: 'שם פרטי', airtableField: 'first name', inputType: 'text', required: true, visible: true, order: 10, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראל' },
+  { key: 'lastName', label: 'שם משפחה', airtableField: 'last name', inputType: 'text', required: true, visible: true, order: 20, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'ישראלי' },
   { key: 'email', label: 'אימייל', airtableField: 'username', inputType: 'email', required: true, visible: true, order: 30, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: 'name@school.edu' },
-  { key: 'phone', label: 'טלפון', airtableField: 'טלפון', inputType: 'tel', required: true, visible: true, order: 40, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: '0501234567' },
+  { key: 'phone', label: 'טלפון', airtableField: 'phone number', inputType: 'tel', required: true, visible: true, order: 40, options: [], appliesTo: ['single', 'bulk'], system: true, placeholder: '0501234567' },
   { key: 'grade', label: 'כיתה / תפקיד', airtableField: 'grade', inputType: 'grade', required: true, visible: true, order: 80, options: ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ז׳','ח׳','ט׳','י׳','י״א','י״ב','אחר'], appliesTo: ['single', 'bulk'], system: true },
 ];
+
+// The teachers table was renamed to English field names. Requests may still
+// arrive keyed by the legacy Hebrew names from a cached frontend bundle or a
+// form config record that predates the rename, so translate on the way in.
+const FIELD_ALIASES = {
+  'שם פרטי': 'first name',
+  'שם משפחה': 'last name',
+  'אימייל': 'username',
+  'טלפון': 'phone number',
+  'בית ספר': 'school name',
+  'כיתה / תפקיד': 'grade',
+};
+
+function resolveField(name) {
+  const trimmed = String(name || '').trim();
+  return FIELD_ALIASES[trimmed] || trimmed;
+}
 
 const SYSTEM_KEYS = new Set(['firstName', 'lastName', 'email', 'phone', 'grade']);
 export default {
@@ -209,8 +226,8 @@ async function handleBulkRegistration(request, env) {
 async function createRegistration(env, body, config, formType) {
   const fields = Array.isArray(body.fields) ? fieldsArrayToObject(body.fields) : (body.fields || {});
   const registrationFields = configToAirtableFields(config, fields, formType);
-  const email = String(registrationFields.username || fields.username || '').trim().toLowerCase();
-  const phone = String(registrationFields['טלפון'] || fields['טלפון'] || '').trim();
+  const email = String(registrationFields.username || firstFieldValue(fields, ['username', 'אימייל'])).trim().toLowerCase();
+  const phone = String(registrationFields['phone number'] || firstFieldValue(fields, ['phone number', 'טלפון'])).trim();
   if (!email) throw httpError(400, 'Email is required');
   if (!phone) throw httpError(400, 'Phone is required');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw httpError(400, 'Invalid email');
@@ -223,8 +240,8 @@ async function createRegistration(env, body, config, formType) {
 
   const entityName = String(firstFieldValue(licRecord.fields, license.nameFields) || '').trim();
   registrationFields.username = email;
-  registrationFields['טלפון'] = phone;
-  registrationFields['בית ספר'] = entityName;
+  registrationFields['phone number'] = phone;
+  registrationFields['school name'] = entityName;
 
   const dupFormula = encodeURIComponent(`{username}='${email.replace(/'/g, "\\'")}'`);
   const dup = await airtable(env, `/${env.AIRTABLE_TEACHERS_TABLE_ID}?filterByFormula=${dupFormula}&maxRecords=1`);
@@ -250,10 +267,21 @@ function configToAirtableFields(config, values, formType) {
   const out = {};
   normalizeConfig(config).forEach((field) => {
     if (!field.visible || !field.airtableField || !field.appliesTo.includes(formType)) return;
-    const value = values[field.airtableField] ?? values[field.key];
-    if (value !== undefined && value !== null && String(value).trim() !== '') out[field.airtableField] = String(value).trim();
+    const target = resolveField(field.airtableField);
+    if (!target) return;
+    const value = firstFieldValue(values, [
+      field.airtableField,
+      target,
+      ...legacyNamesFor(target),
+      field.key,
+    ]);
+    if (String(value).trim() !== '') out[target] = String(value).trim();
   });
   return out;
+}
+
+function legacyNamesFor(current) {
+  return Object.keys(FIELD_ALIASES).filter((legacy) => FIELD_ALIASES[legacy] === current);
 }
 
 function fieldsArrayToObject(fields) {
@@ -305,10 +333,10 @@ async function sendBubble(env, fields, entityName, airtableId) {
   const url = base.endsWith('/obj/user') ? base : `${base}/obj/user`;
   const body = {
     email: fields.username,
-    password: fields['טלפון'],
-    phone: fields['טלפון'],
-    'first name': fields['שם פרטי'] || '',
-    'last name': fields['שם משפחה'] || '',
+    password: fields['phone number'],
+    phone: fields['phone number'],
+    'first name': fields['first name'] || '',
+    'last name': fields['last name'] || '',
     school: entityName,
     classroom: fields.grade || '',
     role: 'Teacher',
