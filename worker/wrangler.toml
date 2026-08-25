@@ -12,7 +12,7 @@ ALLOWED_ORIGIN = "https://mindcet-developers.github.io"
 # wrangler secret put AIRTABLE_TOKEN
 # wrangler secret put AIRTABLE_BASE
 # wrangler secret put FORM_CONFIG_TABLE_ID
-# wrangler secret put ADMIN_PASSWORD_HASH
+# wrangler secret put ADMIN_PASSWORD_HASH   # must be sha256:<lowercase hex>
 # wrangler secret put SESSION_SECRET
 # wrangler secret put BUBBLE_URL
 # wrangler secret put BUBBLE_TOKEN

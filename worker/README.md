@@ -32,7 +32,14 @@ wrangler secret put BUBBLE_URL
 wrangler secret put BUBBLE_TOKEN
 ```
 
-`ADMIN_PASSWORD_HASH` can be plain text for temporary testing, or `sha256:<hex>`.
+`ADMIN_PASSWORD_HASH` must be `sha256:<hex>` - the lowercase hex SHA-256 of the
+UTF-8 password. Plain text values are rejected with a 500. Generate it with:
+
+```bash
+printf '%s' 'the-password' | shasum -a 256
+```
+
+`SESSION_SECRET` is required; login fails with a 500 when it is not set.
 
 ## GitHub Actions deploy
 

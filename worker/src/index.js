@@ -54,10 +54,12 @@ async function handleLogin(request, env) {
   const body = await request.json().catch(() => ({}));
   const password = String(body.password || '');
   if (!password) return json({ error: 'Password is required' }, env, 400);
-  const expected = env.ADMIN_PASSWORD_HASH || '';
-  const ok = expected.startsWith('sha256:')
-    ? await sha256Hex(password) === expected.slice(7)
-    : password === expected;
+  const expected = (env.ADMIN_PASSWORD_HASH || '').trim();
+  if (!expected.startsWith('sha256:')) {
+    console.error('ADMIN_PASSWORD_HASH must be set to sha256:<hex>');
+    return json({ error: 'Server misconfigured' }, env, 500);
+  }
+  const ok = timingSafeEqual(await sha256Hex(password), expected.slice(7).toLowerCase());
   if (!ok) return json({ error: 'Invalid password' }, env, 401);
 
   const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 12;
@@ -80,8 +82,13 @@ async function isAdmin(request, env) {
   const [payload, sig] = match[1].split('.');
   if (!payload || !sig) return false;
   const expected = await hmac(payload, env.SESSION_SECRET);
-  if (sig !== expected) return false;
-  const data = JSON.parse(fromB64url(payload));
+  if (!timingSafeEqual(sig, expected)) return false;
+  let data;
+  try {
+    data = JSON.parse(fromB64url(payload));
+  } catch {
+    return false;
+  }
   return data.exp && data.exp > Math.floor(Date.now() / 1000);
 }
 
@@ -547,8 +554,20 @@ async function sha256Hex(value) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 async function hmac(value, secret) {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret || 'dev-secret'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  if (!secret) {
+    const err = new Error('SESSION_SECRET is not configured');
+    err.status = 500;
+    throw err;
+  }
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(value));
   return b64urlBytes(new Uint8Array(sig));
 }
