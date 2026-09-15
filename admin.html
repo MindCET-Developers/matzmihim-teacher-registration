@@ -41,6 +41,7 @@
       <div class="bottom-bar" style="margin-bottom:1rem">
         <button class="btn-secondary" type="button" id="btnReload">רענן מ-Airtable</button>
         <button class="btn-secondary" type="button" id="btnAddMissing">הוסף שדות חסרים</button>
+        <button class="btn-secondary" type="button" id="btnAddField">הוסף שאלה</button>
         <button class="btn" type="button" id="btnSave">שמור הגדרות</button>
       </div>
       <div class="admin-grid header-row">
@@ -147,6 +148,7 @@
 
   document.getElementById('btnReload').addEventListener('click', loadAdminData);
   document.getElementById('btnAddMissing').addEventListener('click', addMissingSchemaFields);
+  document.getElementById('btnAddField').addEventListener('click', addCustomField);
   document.getElementById('btnSave').addEventListener('click', saveConfig);
   document.getElementById('btnAddEntity').addEventListener('click', addEntity);
 
@@ -193,6 +195,34 @@
       });
     });
     renderFields();
+  }
+
+  function nextOrder() {
+    return formFields.reduce(function (max, field) { return Math.max(max, Number(field.order) || 0); }, 0) + 10;
+  }
+
+  function addCustomField() {
+    if (!loggedIn) return;
+    // A new question starts unmapped on purpose: the admin picks its Airtable
+    // column in the row, and saving stays blocked until they do.
+    formFields.push({
+      key: 'field_' + Date.now(),
+      label: 'שאלה חדשה',
+      airtableField: '',
+      inputType: 'text',
+      required: false,
+      visible: true,
+      order: nextOrder(),
+      options: [],
+      appliesTo: ['single', 'bulk'],
+    });
+    renderFields();
+    var rows = document.querySelectorAll('.admin-field-row');
+    var lastRow = rows[rows.length - 1];
+    if (!lastRow) return;
+    lastRow.scrollIntoView({ block: 'nearest' });
+    var labelInput = lastRow.querySelector('[data-prop="label"]');
+    if (labelInput) labelInput.select();
   }
 
   function renderFields() {
