@@ -18,12 +18,22 @@
     });
   }
 
+  var collator = typeof Intl !== 'undefined' && Intl.Collator
+    ? new Intl.Collator('he', { sensitivity: 'base', numeric: true })
+    : null;
+
+  function compareLabels(a, b) {
+    if (collator) return collator.compare(a.label, b.label);
+    return a.label.localeCompare(b.label, 'he');
+  }
+
   function readOptions(select) {
     return [].slice.call(select.options)
       .filter(function (opt) { return opt.value !== ''; })
       .map(function (opt) {
         return { value: opt.value, label: opt.textContent, disabled: opt.disabled };
-      });
+      })
+      .sort(compareLabels);
   }
 
   function placeholderText(select) {
