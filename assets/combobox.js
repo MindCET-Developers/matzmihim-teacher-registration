@@ -38,7 +38,7 @@
 
   function placeholderText(select) {
     var first = select.options[0];
-    return first && first.value === '' ? first.textContent : 'בחרו או הקלידו';
+    return first && first.value === '' ? first.textContent : 'בחר';
   }
 
   function Combobox(select) {

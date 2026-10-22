@@ -114,7 +114,7 @@
     select.innerHTML = '<option value="">טוען נתונים...</option>';
     try {
       var rows = await loadEntities(type);
-      select.innerHTML = '<option value="">בחר</option>';
+      select.innerHTML = '<option value="">בחרו או הקלידו</option>';
       rows.forEach(function (row) {
         var opt = document.createElement('option');
         opt.value = row.id;
