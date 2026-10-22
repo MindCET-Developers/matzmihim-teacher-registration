@@ -29,7 +29,7 @@
     if (field.inputType === 'select' || field.inputType === 'grade') {
       var options = field.options && field.options.length ? field.options : [];
       var html = '<select id="' + id + '" data-field-key="' + escapeHtml(field.key) + '">';
-      html += '<option value="">בחר</option>';
+      html += '<option value="">בחרו או הקלידו</option>';
       options.forEach(function (opt) { html += optionHtml(opt, opt === value); });
       html += '</select>';
       if (field.inputType === 'grade') {
