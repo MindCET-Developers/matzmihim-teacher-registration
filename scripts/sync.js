@@ -9,7 +9,7 @@
  *   2. Fetch all Bubble users (paginated), keyed by airtable_record_id
  *   3. For each Airtable record:
  *      - Not in Bubble → CREATE (password = phone)
- *      - In Bubble but fields differ → UPDATE (no password change)
+ *      - In Bubble but fields differ → UPDATE (never touches password or role)
  *      - No diff → skip
  *   4. Print summary
  */
@@ -116,6 +116,7 @@ async function createBubbleUser(atRecord) {
     email:               pick(f, 'username').toLowerCase(),
     password:            common.phone,
     ...common,
+    role:                'Teacher',           // set once, at creation only
     airtable_record_id:  atRecord.id,
   };
 
@@ -158,14 +159,15 @@ async function updateBubbleUser(bubbleId, changedFields) {
 // differently — `school` used to include the city on create but not on diff,
 // which made every sync run report the same user as changed.
 // email is a protected field in Bubble — it cannot be updated via the Data API,
-// and password is only ever set at creation time.
+// password is only ever set at creation time, and `role` is deliberately NOT
+// here: it is assigned once in createBubbleUser. Including it made every sync
+// run PATCH it back to 'Teacher', silently undoing admins promoted in Bubble.
 function commonBubbleFields(f) {
   return {
     'first name': pick(f, 'first name', 'שם פרטי'),
     'last name':  pick(f, 'last name', 'שם משפחה'),
     phone:        pick(f, 'phone number', 'טלפון'),
     school:       [pick(f, 'school name', 'בית ספר'), pick(f, 'city', 'יישוב בית ספר')].filter(Boolean).join(', '),
-    role:         'Teacher',
     classroom:    pick(f, 'grade'),
     expiration:   pick(f, 'final expiration'),
   };
