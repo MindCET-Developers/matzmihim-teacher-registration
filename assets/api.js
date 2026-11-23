@@ -33,6 +33,9 @@
     submitRegistration: function (payload) {
       return request('/registrations', { method: 'POST', body: JSON.stringify(payload) });
     },
+    emailExists: function (email) {
+      return request('/registrations/exists?email=' + encodeURIComponent(email), { method: 'GET', headers: {} });
+    },
     submitBulkRegistrations: function (payload) {
       return request('/bulk-registrations', { method: 'POST', body: JSON.stringify(payload) });
     },

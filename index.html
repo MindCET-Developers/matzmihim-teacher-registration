@@ -133,6 +133,32 @@
     }
   }
 
+  function showAlreadyRegistered() {
+    var url = (window.MATZMIHIM_CONFIG || {}).PLATFORM_URL || '';
+    document.getElementById('regForm').style.display = 'none';
+    document.getElementById('successMsg').innerHTML =
+      'כתובת המייל הזו כבר רשומה במערכת, ואין צורך להירשם שוב.<br/><br/>' +
+      (url
+        ? '<a href="' + DynamicForm.escapeHtml(url) + '" class="btn-submit" style="display:inline-block;text-decoration:none;padding:0.7rem 1.5rem">מעבר לכניסה למערכת</a><br/><br/>'
+        : '') +
+      'הכניסה לאתר בעזרת המייל והנייד איתם נרשמת. מומלץ לשמור את הקישור למערכת.';
+    document.getElementById('successScreen').classList.add('show');
+  }
+
+  function watchEmail() {
+    var field = formFields.filter(function (f) { return f.inputType === 'email' || f.key === 'email'; })[0];
+    var el = field && document.getElementById(DynamicForm.fieldId(field));
+    if (!el) return;
+    el.addEventListener('change', async function () {
+      var value = el.value.trim();
+      if (!DynamicForm.validateValue(field, value) || !value) return;
+      try {
+        var res = await MatzmihimApi.emailExists(value);
+        if (res && res.exists) showAlreadyRegistered();
+      } catch (e) { /* the server re-checks on submit */ }
+    });
+  }
+
   document.getElementById('regType').addEventListener('change', function () {
     var val = this.value;
     document.getElementById('schoolFieldWrap').style.display = val === 'school' ? '' : 'none';
@@ -168,6 +194,7 @@
         'קישור לפלטפורמה נשלח אלייך במייל האישי.';
       document.getElementById('successScreen').classList.add('show');
     } catch (err) {
+      if (/כבר רשומה/.test(err.message)) { showAlreadyRegistered(); return; }
       showError(err.message);
       btn.classList.remove('loading');
       btn.disabled = false;
@@ -184,6 +211,7 @@
       DynamicForm.mount(document.getElementById('dynamicFields'), formFields);
       showError('נטען טופס ברירת מחדל כי לא ניתן היה לטעון קונפיג: ' + err.message);
     }
+    watchEmail();
   }
 
   init();
