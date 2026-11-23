@@ -229,9 +229,15 @@ async function handleBulkRegistration(request, env) {
 async function handleEmailExists(url, env) {
   const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ exists: false }, env);
-  const formula = encodeURIComponent(`{username}='${email.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`);
+  return json({ exists: await teacherEmailExists(env, email) }, env);
+}
+
+// Case/whitespace-insensitive, so rows imported with "Name@School.edu" still match.
+async function teacherEmailExists(env, email) {
+  const quoted = email.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  const formula = encodeURIComponent(`LOWER(TRIM({username}))='${quoted}'`);
   const res = await airtable(env, `/${env.AIRTABLE_TEACHERS_TABLE_ID}?filterByFormula=${formula}&maxRecords=1&fields%5B%5D=username`);
-  return json({ exists: !!(res.records && res.records.length) }, env);
+  return !!(res.records && res.records.length);
 }
 
 async function createRegistration(env, body, config, formType) {
@@ -254,9 +260,7 @@ async function createRegistration(env, body, config, formType) {
   registrationFields['phone number'] = phone;
   registrationFields['school name'] = entityName;
 
-  const dupFormula = encodeURIComponent(`{username}='${email.replace(/'/g, "\\'")}'`);
-  const dup = await airtable(env, `/${env.AIRTABLE_TEACHERS_TABLE_ID}?filterByFormula=${dupFormula}&maxRecords=1`);
-  if (dup.records && dup.records.length) throw httpError(409, 'כתובת האימייל הזו כבר רשומה במערכת.');
+  if (await teacherEmailExists(env, email)) throw httpError(409, 'כתובת האימייל הזו כבר רשומה במערכת.');
 
   const created = await airtable(env, `/${env.AIRTABLE_TEACHERS_TABLE_ID}`, {
     method: 'POST',
