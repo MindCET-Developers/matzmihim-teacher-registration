@@ -29,7 +29,8 @@ jobs:
         run: |
           cat > config.js <<EOF
           window.MATZMIHIM_CONFIG = {
-            API_BASE_URL: '${{ vars.API_BASE_URL }}'
+            API_BASE_URL: '${{ vars.API_BASE_URL }}',
+            PLATFORM_URL: '${{ vars.PLATFORM_URL || 'https://matzmihim-teachers.bubbleapps.io/' }}'
           };
           EOF
 

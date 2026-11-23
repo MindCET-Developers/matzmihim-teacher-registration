@@ -40,6 +40,7 @@ export default {
       if (url.pathname === '/admin/entities' && request.method === 'POST') return await requireAdmin(request, env, () => handleCreateEntity(request, env));
       if (url.pathname === '/form-config' && request.method === 'GET') return json(await readFormConfig(env), env);
       if (url.pathname === '/entities' && request.method === 'GET') return await handleEntities(url, env);
+      if (url.pathname === '/registrations/exists' && request.method === 'GET') return await handleEmailExists(url, env);
       if (url.pathname === '/registrations' && request.method === 'POST') return await handleRegistration(request, env);
       if (url.pathname === '/bulk-registrations' && request.method === 'POST') return await handleBulkRegistration(request, env);
       return json({ error: 'Not found' }, env, 404);
@@ -225,6 +226,20 @@ async function handleBulkRegistration(request, env) {
   return json({ ok: true, succeeded, failed: results.length - succeeded, remaining: remaining - succeeded, results }, env);
 }
 
+async function handleEmailExists(url, env) {
+  const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ exists: false }, env);
+  return json({ exists: await teacherEmailExists(env, email) }, env);
+}
+
+// Case/whitespace-insensitive, so rows imported with "Name@School.edu" still match.
+async function teacherEmailExists(env, email) {
+  const quoted = email.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  const formula = encodeURIComponent(`LOWER(TRIM({username}))='${quoted}'`);
+  const res = await airtable(env, `/${env.AIRTABLE_TEACHERS_TABLE_ID}?filterByFormula=${formula}&maxRecords=1&fields%5B%5D=username`);
+  return !!(res.records && res.records.length);
+}
+
 async function createRegistration(env, body, config, formType) {
   const fields = Array.isArray(body.fields) ? fieldsArrayToObject(body.fields) : (body.fields || {});
   const registrationFields = configToAirtableFields(config, fields, formType);
@@ -245,9 +260,7 @@ async function createRegistration(env, body, config, formType) {
   registrationFields['phone number'] = phone;
   registrationFields['school name'] = entityName;
 
-  const dupFormula = encodeURIComponent(`{username}='${email.replace(/'/g, "\\'")}'`);
-  const dup = await airtable(env, `/${env.AIRTABLE_TEACHERS_TABLE_ID}?filterByFormula=${dupFormula}&maxRecords=1`);
-  if (dup.records && dup.records.length) throw httpError(409, 'כתובת האימייל הזו כבר רשומה במערכת.');
+  if (await teacherEmailExists(env, email)) throw httpError(409, 'כתובת האימייל הזו כבר רשומה במערכת.');
 
   const created = await airtable(env, `/${env.AIRTABLE_TEACHERS_TABLE_ID}`, {
     method: 'POST',
